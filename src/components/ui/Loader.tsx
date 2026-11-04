@@ -1,12 +1,18 @@
 "use client";
 
+import { useUiStore } from "@/store/ui-store";
 import { useProgress } from "@react-three/drei";
 import { useEffect, useState } from "react";
 
-/** Full-screen loading overlay driven by drei's global asset-loading progress. */
+/**
+ * Full-screen loading overlay. Downloads drive the bar, but it only lifts once the visitor has
+ * actually spawned: physics (Rapier WASM) starts after the downloads and is not tracked by
+ * drei's progress, which otherwise left a blank screen for a few seconds on slow phones.
+ */
 export function Loader() {
   const { active, progress } = useProgress();
-  const done = !active && progress >= 100;
+  const sceneReady = useUiStore((s) => s.sceneReady);
+  const done = sceneReady && !active && progress >= 100;
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -19,6 +25,7 @@ export function Loader() {
 
   return (
     <output
+      data-testid="scene-loader"
       className={`absolute inset-0 z-20 grid place-items-center bg-[#f6f4ef] transition-opacity duration-500 ${done ? "opacity-0" : "opacity-100"}`}
       aria-live="polite"
     >
@@ -31,7 +38,9 @@ export function Loader() {
           />
         </div>
         <p className="mt-2 text-xs text-neutral-500">
-          Opening the showroom… {Math.round(progress)}%
+          {progress >= 100
+            ? "Getting the shop ready…"
+            : `Opening the showroom… ${Math.round(progress)}%`}
         </p>
       </div>
     </output>

@@ -88,9 +88,9 @@ The clips key the armature object's own transform, so the script scales a **pare
 ## 4. Optimise for the web
 
 ```bash
-# phones (keep materials separate! --palette false)
+# phones (keep materials separate: --palette false; keep the Screen UVs: --prune-attributes false)
 npx @gltf-transform/cli optimize blender/out/pulse-x.glb public/models/phones/pulse-x.glb \
-  --compress meshopt --simplify false --palette false --texture-compress webp
+  --compress meshopt --simplify false --palette false --prune-attributes false --texture-compress webp
 
 # inspect: size, triangles, material names
 npx @gltf-transform/cli inspect public/models/phones/pulse-x.glb
@@ -106,6 +106,8 @@ npx @gltf-transform/cli inspect public/models/phones/pulse-x.glb
 | podium / table | 39 / 30 KB | 10 / 7 KB |
 
 ⚠️ **Do not use the default `optimize` without `--palette false`.** It merges all materials into one palette texture, which deletes the `Body` material the app needs for colour swaps.
+
+⚠️ **Phones also need `--prune-attributes false`.** The `Screen` material has no texture in the file (the app paints a wallpaper onto it at runtime), so by default the optimiser treats its UVs as unused and deletes them, and the wallpaper then shows as one flat colour.
 
 meshopt was chosen over Draco because its decoder is bundled with three.js/drei, so no extra fetch from a Google CDN is needed. That matters on slow connections.
 

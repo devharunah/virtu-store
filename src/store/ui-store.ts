@@ -7,6 +7,9 @@ export interface Selection {
 }
 
 interface UiState {
+  /** True once the player has spawned in the showroom (assets loaded and physics running). */
+  sceneReady: boolean;
+  setSceneReady: (ready: boolean) => void;
   /** The phone the visitor is standing next to (drives the "Press E" prompt). */
   nearSlotId: string | null;
   nearProductId: string | null;
@@ -33,6 +36,10 @@ export function selectionFor(selections: Record<string, Selection>, product: Pro
 }
 
 export const useUiStore = create<UiState>()((set, get) => ({
+  sceneReady: false,
+  setSceneReady: (sceneReady) => {
+    if (get().sceneReady !== sceneReady) set({ sceneReady });
+  },
   nearSlotId: null,
   nearProductId: null,
   nearColourId: null,

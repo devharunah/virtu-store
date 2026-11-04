@@ -1,18 +1,10 @@
 import { type Page, expect, test } from "@playwright/test";
 
-type Vec = { x: number; y: number; z: number };
-declare global {
-  interface Window {
-    __virtuPlayer?: { ready: boolean; position: Vec };
-    __virtuUI?: { getState: () => { nearSlotId: string | null; inspectingId: string | null } };
-  }
-}
-
 async function openShowroom(page: Page, errors: string[]) {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/store?debug");
   await expect(page.locator("canvas").first()).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByText(/Opening the showroom/)).toBeHidden({ timeout: 90_000 });
+  await expect(page.getByTestId("scene-loader")).toBeHidden({ timeout: 90_000 });
   await page.waitForFunction(() => window.__virtuPlayer?.ready === true, null, { timeout: 30_000 });
 }
 
@@ -77,7 +69,7 @@ test.describe("on a touch phone", () => {
       expect(r.left).toBeGreaterThanOrEqual(0);
       expect(r.right).toBeLessThanOrEqual(viewport?.width ?? 0);
     }
-    await expect(page.getByText("Joystick to walk · drag to look")).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Open bag/ })).toBeVisible();
     expect(errors).toEqual([]);
   });
 });
