@@ -46,7 +46,9 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 - WebGL code is client-only. `ssr: false` must be used inside a Client Component
   (`ExperienceLoader.tsx`); Next 16 rejects it in Server Components.
 - Every fixture, its collider and its phone slots are defined once, in `src/data/store-layout.ts`.
-- Phone colourways recolour the GLB material named `Body`. Never rename GLB materials.
+- Phone colourways recolour the GLB material named `Body`; the `Screen` material gets a runtime
+  wallpaper (`screen-texture.ts`). Never rename GLB materials, and optimise phones with
+  `--palette false --prune-attributes false` (see `docs/ASSET-PIPELINE.md`).
 - Performance budget: first 3D download ≤ 5 MB, ≤ 150 draw calls, DPR ≤ 1.5. Use `/store?debug`
   to see colliders and read `window.__virtu.get().gl.info`.
 - Asset licences: log every third-party asset in `docs/ASSETS-CREDITS.md` before it lands.

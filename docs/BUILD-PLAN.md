@@ -132,24 +132,37 @@ export interface CartItem {
 - [ ] Screen wallpaper texture on the `Screen` material (moved to Phase 5 polish)
 - "Add to cart" lands with Phase 4
 
-## Phase 4: Cart and simulated checkout
-- [ ] `cart-store.ts` (zustand + `persist` to localStorage): add, remove, update qty/variant, totals
-- [ ] `CartDrawer`: line items, change storage/qty, remove, subtotal, delivery fee (flat UGX 10k inside Kampala), total
-- [ ] `/checkout`: name, phone number, delivery area (Kampala divisions dropdown), payment method radio **MTN MoMo / Airtel Money / Cash on delivery**, all **mock**. "Pay" shows a fake "Approve on your phone" spinner and then a success screen with an order number and an estimated boda delivery time
-- [ ] A clear banner: "Demo: no real payment is taken"
+## Phase 4: Cart and simulated checkout ✅
+Built in parallel by a subagent in its own git worktree, then wired into the store.
+- [x] `src/lib/pricing.ts`: `unitPrice`, delivery fees (UGX 10,000 in Kampala, 25,000 outside), `cartTotals`
+- [x] `src/store/cart-store.ts`: zustand + `persist` (`virtu-cart-v1`). Lines are keyed by product + colour + storage; prices are derived from the catalogue at read time, never trusted from storage; stored data is sanitised on load; hydration is safe for prerendering
+- [x] `CartButton` + `CartDrawer` (native `<dialog>`, focus trap, Esc, body scroll lock): change storage or quantity, remove, subtotal. Mounted on `/store` and `/checkout`
+- [x] "Add to bag · UGX …" in the inspect sheet, then "View bag and check out". The player stands still while the bag is open
+- [x] `/checkout`: the "Demo store: no real payment is taken" banner, an order summary, name, Ugandan phone (normalised to +256, network detected), Kampala division or outside Kampala, landmark notes, **MTN MoMo / Airtel Money / Cash on delivery**. MoMo needs an MTN number and Airtel Money an Airtel number. A mock "approve the prompt on your phone" step leads to an order number (`VIRTU-XXXXXX`) and a boda ETA, and the bag is cleared
 
-**Done when:** the full 8-step success journey works end to end on desktop and on a phone.
+## Phase 5: Polish, performance, deploy ✅ (two items need a human)
+- [x] Phone screens: an original lock-screen wallpaper drawn into a canvas at runtime in each phone's colour (`screen-texture.ts`), so no download
+- [x] Open Graph and Twitter preview image (`src/app/opengraph-image.jpg`, 1200×630) for LinkedIn/WhatsApp/X links
+- [x] Cache headers for 3D assets: 1 h in the browser, 1 day at the CDN, background revalidation
+- [x] Preloading of every model the showroom uses (`useGLTF.preload`)
+- [x] Hover/near feedback on phones (they grow slightly when in reach; pointer cursor on hover)
+- [x] An end-to-end test of the full 8-step journey from the brief (`e2e/journey.spec.ts`)
+- [x] CI on every PR (lint, typecheck + build, Jest, Playwright), Vercel preview per PR, production on `main`
+- [ ] **Human:** test on a real mid-range Android over 4G (frame rate, joystick feel)
+- [ ] **Human:** record the demo videos (TikTok vertical on a phone, LinkedIn 16:9 on desktop)
+- Not done, as optional polish: entrance camera sweep, ambient audio with a mute toggle
 
-## Phase 5: Polish, performance, deploy, demo
-- [ ] Check the budget from RESEARCH §2: run Lighthouse with mobile throttling, and test on a real mid-range Android over 4G
-- [ ] Compress environment textures (`gltf-transform optimize --texture-compress webp`); load HDRI at 1K
-- [ ] Preload the next phone models with `useGLTF.preload`
-- [ ] Polish: entrance camera sweep, hover glow on phones, subtle ambient audio (with a mute toggle)
-- [ ] Deploy to Vercel production; add OG image (`docs/img/lineup-back.png` is a good start)
-- [ ] Record a 30–45 s screen capture for TikTok (vertical, mobile) and LinkedIn (16:9, desktop)
-- [ ] Fill in `docs/ASSETS-CREDITS.md` for every asset actually shipped
+**Measured (production build, 4 Nov 2026):**
+| Budget | Target | Now |
+|---|---|---|
+| Draw calls in the store | ≤ 150 | 91 |
+| Triangles in view | n/a | ~41k |
+| JS, gzipped | n/a | ~1.34 MB (Rapier ~815 KB, three.js ~290 KB) |
+| 3D assets | n/a | models 456 KB (character 234 KB), textures 248 KB, HDRI ~1.26 MB gzipped |
+| First `/store` download | ≤ 5 MB | ~3.3 MB |
 
-**Done when:** the public URL loads within 5 s on 4G, and both demo videos are recorded.
+Real frame rate still has to be measured on a real device (the automated browser renders WebGL in software).
+Biggest remaining saving: a 512 px HDRI or a prefiltered environment map (about 1 MB).
 
 ---
 
