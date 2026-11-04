@@ -1,13 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
 
-type Vec = { x: number; y: number; z: number };
-declare global {
-  interface Window {
-    __virtuPlayer?: { ready: boolean; position: Vec };
-    __virtuUI?: { getState: () => { nearSlotId: string | null; inspectingId: string | null } };
-  }
-}
-
 async function openShowroom(page: Page, errors: string[]) {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/store?debug");
@@ -77,7 +69,7 @@ test.describe("on a touch phone", () => {
       expect(r.left).toBeGreaterThanOrEqual(0);
       expect(r.right).toBeLessThanOrEqual(viewport?.width ?? 0);
     }
-    await expect(page.getByText("Joystick to walk · drag to look")).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Open bag/ })).toBeVisible();
     expect(errors).toEqual([]);
   });
 });
