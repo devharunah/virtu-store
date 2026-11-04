@@ -115,24 +115,22 @@ export interface CartItem {
 **Not yet measured:** real frame rate. The test browser pane was hidden, which throttles it, so check FPS on a real desktop and on a mid-range Android.
 **Possible saving later:** the HDRI is the largest asset. A 512 px version or a prefiltered cube map could cut about 1 MB.
 
-## Phase 2: Character and controls, including mobile
-- [ ] Download a Quaternius CC0 animated character (GLB with Idle/Walk/Run). Rename clips to ecctrl's expected names if needed (a Blender script or `gltf-transform`)
-- [ ] `Player.tsx`: `<KeyboardControls map={...}>` + `<Ecctrl>` capsule + animation hookup (follow the **current ecctrl v2 README**)
-- [ ] Third-person follow camera with mouse/touch drag orbit; camera collision with walls
-- [ ] **Mobile:** on-screen joystick + "Inspect" button (ecctrl has a built-in joystick option; otherwise use `nipplejs`)
-- [ ] Spawn the player at the entrance, facing the hero podium
+## Phase 2: Character and controls, including mobile ✅
+- [x] Quaternius "Animated Human" (CC0), converted by `blender/character.py`: 1.75 m, feet at the origin, facing +Z, palette recoloured (deeper skin tone, near-black hair, VIRTU-orange shirt), clips `idle` / `walk` / `run` / `jump`
+- [x] `Player.tsx`: ecctrl v2 floating capsule. ecctrl v2 does **not** read input itself: every frame we merge drei `KeyboardControls` (WASD/arrows, Shift run, Space jump) with ecctrl's touch joystick and jump button and call `setMovement`. Animation states come from `EcctrlAnimationStateController`
+- [x] `FollowCamera.tsx`: OrbitControls whose target follows the player (drag to look, scroll/pinch zoom), clamped inside the room; portrait screens get a wider field of view
+- [x] Collisions with walls, glass, tables, counter and plants (Rapier colliders from `store-layout.ts`)
+- [x] **Mobile:** ecctrl `Joystick` + `VirtualButton` (pinned on screen; ecctrl renders them `position: fixed` without offsets), plus an "Inspect <phone>" button when one is in reach. Shown only on `pointer: coarse`
+- [x] Spawn just inside the door, facing the hero podium
 
-**Done when:** WASD and the joystick move the character, they can't walk through walls or tables, and the walk/idle animations blend.
-
-## Phase 3: Phones and interaction
-- [ ] `data/products.ts` from the catalogue above
-- [ ] `PhoneModel.tsx`: `useGLTF(url)` (meshopt decoding is built into drei) → clone the scene → find the material named `Body` and set its colour from the selected colour; give `Screen` a wallpaper texture from `/screens/`
-- [ ] `PhoneDisplay.tsx`: phone slowly rotating on its stand + `<CuboidCollider sensor>` (about 1.5 m) → when the player enters, set `nearProductId` in `ui-store`
-- [ ] `InteractPrompt` HUD: "Press **E** / tap to inspect"
-- [ ] `ProductPanel` (HTML overlay): name, tier, specs, price in UGX, colour swatches, storage chips, quantity, **Add to cart**
-- [ ] `InspectViewer`: a separate small `<Canvas>` with `<OrbitControls enablePan={false} minDistance maxDistance>` + `<Stage>`, for a 360° spin and zoom. Colour changes show live
-
-**Done when:** walking up to any of the 5 phones → E → you can rotate/zoom it, change colour and storage, and see the price update.
+## Phase 3: Phones and interaction ✅
+- [x] `src/lib/display-slots.ts`: every phone on display resolved to world space; `nearestSlot()` picks the phone within 1.5 m. This replaced per-phone physics sensors, because several phones share one table
+- [x] Prompt floating over the nearest phone ("from UGX … · E to inspect" / "Tap to inspect"); the phone grows slightly when in reach; click/tap any phone to open it
+- [x] `ProductPanel` (native `<dialog>`): tier, name, live price in UGX, colour swatches, storage chips with price deltas, specs. Esc/close/backdrop close it, and the showroom canvas pauses while it is open
+- [x] `InspectViewer`: a separate small canvas, auto-rotating, drag to spin 360°, scroll/pinch to zoom, colour changes live
+- [x] `ui-store.ts`: near phone (and its displayed colour), inspected phone, the visitor's colour/storage choice per product
+- [ ] Screen wallpaper texture on the `Screen` material (moved to Phase 5 polish)
+- "Add to cart" lands with Phase 4
 
 ## Phase 4: Cart and simulated checkout
 - [ ] `cart-store.ts` (zustand + `persist` to localStorage): add, remove, update qty/variant, totals
