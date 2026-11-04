@@ -4,8 +4,8 @@ import { HALF_D, HALF_W, ROOM, SPAWN } from "@/data/store-layout";
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
+import type { ComponentRef } from "react";
 import * as THREE from "three";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 export const BASE_FOV = 55;
 const MARGIN = 0.35;
@@ -16,7 +16,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * Phase 2 replaces this with the ecctrl follow camera.
  */
 export function CameraRig() {
-  const controls = useRef<OrbitControlsImpl>(null);
+  const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
 

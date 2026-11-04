@@ -16,7 +16,12 @@ const customConfig = {
     "**/*.test.ts",
     "**/*.test.tsx",
   ],
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/", "<rootDir>/e2e/"],
+  testPathIgnorePatterns: [
+    "<rootDir>/node_modules/",
+    "<rootDir>/.next/",
+    "<rootDir>/e2e/",
+    "<rootDir>/.claude/",
+  ],
   coverageProvider: "v8",
   collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts"],
 };

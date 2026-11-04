@@ -41,5 +41,5 @@
     "**/*.mts"
   ],
   // .next/dev/types is written by `next dev` and trips noUnusedLocals; CI typechecks .next/types from `next typegen`.
-  "exclude": ["node_modules", ".next/dev"]
+  "exclude": ["node_modules", ".next/dev", ".claude"]
 }
