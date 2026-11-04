@@ -8,7 +8,8 @@ Status: ✅ in repo · 🟡 planned / to download · ❌ rejected
 
 | Status | Asset | File(s) | Source | Author | Licence | Notes |
 |---|---|---|---|---|---|---|
-| ✅ | Nova A1, Nova A5, Pulse X, Pulse X Pro, Zenith Ultra | `public/models/phones/*.glb` | `blender/phones.py` (original) | VIRTU.STORE team | Own work | Brand-neutral, no logos or trademarks |
+| ✅ | iPhone 17 Pro Max, iPhone 17, Galaxy S25 Ultra, Galaxy A56, Galaxy A17 (3D models) | `public/models/phones/*.glb` | `blender/phones.py` (original geometry approximating the real designs) | VIRTU.STORE team | Own work; **depicts trademarked products** | Real product names, designs and logos belong to Apple Inc. and Samsung Electronics. The UI shows a trademark / not-affiliated notice (`TrademarkNotice.tsx`) |
+| ✅ | Apple logo and SAMSUNG wordmark outlines | `blender/brand/*.svg` | [simple-icons@16.36.0](https://simpleicons.org/) | Simple Icons contributors | SVG paths CC0 1.0; **the marks are trademarks of Apple Inc. and Samsung Electronics** | Used on the phone backs to depict the real products; not for any other use |
 | ✅ | Podium, Display table | `public/models/fixtures/*.glb` | `blender/phones.py` (original) | VIRTU.STORE team | Own work | |
 | ✅ | Lineup renders | `docs/img/lineup-*.png`, `public/og/lineup-back.png` | Blender EEVEE render | VIRTU.STORE team | Own work | Can be used for the OG image and social posts |
 | ✅ | Counter, wall display bay, snake plant, "VIRTU.STORE" sign | `public/models/environment/*.glb` | `blender/store_props.py` (original) | VIRTU.STORE team | Own work | Sign uses Blender's bundled font (Bfont, GPL with font exception, so fine to embed as geometry) |

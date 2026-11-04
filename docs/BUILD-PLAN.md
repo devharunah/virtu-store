@@ -19,15 +19,15 @@ A polished, shareable prototype (LinkedIn/TikTok) where a visitor can:
 | `docs/img/lineup-*.png` | Blender preview renders |
 
 ## Product catalogue (v1)
-Names and prices are placeholders. Prices are in UGX and get adjusted per storage tier.
+Real phones, with brand logos on the 3D models and a trademark notice in the UI. Prices are **indicative** Kampala retail in UGX (Nov 2026): Galaxy S25 Ultra and A56 come from a Feb 2026 Uganda round-up; the iPhone 17 Pro Max has no reliable local price yet, so it is an estimate. Storage tiers add to the base price.
 
 | id | Name | Tier | Base price (UGX) | Storage options | Colours |
 |---|---|---|---|---|---|
-| `nova-a1` | Nova A1 | Budget | 349,000 | 64 GB / 128 GB (+60k) | Midnight `#2B3A55`, Sand `#D8C7A3`, Mint `#9ED9C3` |
-| `nova-a5` | Nova A5 | Entry | 549,000 | 128 GB / 256 GB (+90k) | Forest `#3E7C59`, Graphite `#3A3A3C`, Sky `#8EC5E8` |
-| `pulse-x` | Pulse X | Mid-range | 899,000 | 128 GB / 256 GB (+120k) | Lilac `#C9B8E8`, Pearl `#F1EFEA`, Ink `#22252B` |
-| `pulse-x-pro` | Pulse X Pro | Upper mid | 1,499,000 | 256 GB / 512 GB (+250k) | Sunset `#D9822B`, Ocean `#2C6E8F`, Onyx `#1F1F1F` |
-| `zenith-ultra` | Zenith Ultra | Flagship | 3,499,000 | 256 GB / 512 GB (+400k) / 1 TB (+900k) | Titanium Black `#1C1C1E`, Silver `#C7C9CC`, Desert `#BFA27A` |
+| `galaxy-a17` | Samsung Galaxy A17 5G | Entry | 720,000 | 128 GB / 256 GB (+120k) | Black, Blue, Gray |
+| `galaxy-a56` | Samsung Galaxy A56 5G | Mid-range | 1,390,000 | 128 GB / 256 GB (+180k) | Awesome Graphite, Lightgray, Olive, Pink |
+| `iphone-17` | Apple iPhone 17 | Upper mid | 4,300,000 | 256 GB / 512 GB (+900k) | Black, White, Mist Blue, Sage, Lavender |
+| `galaxy-s25-ultra` | Samsung Galaxy S25 Ultra | Flagship | 4,950,000 | 256 GB / 512 GB (+700k) / 1 TB (+1.6M) | Titanium Silverblue, Black, Gray, Whitesilver |
+| `iphone-17-pro-max` | Apple iPhone 17 Pro Max (hero podium) | Flagship | 6,200,000 (est.) | 256 GB / 512 GB (+900k) / 1 TB (+1.9M) / 2 TB (+3.9M) | Cosmic Orange, Deep Blue, Silver |
 
 ### Data types (`src/types/product.ts`)
 ```ts
@@ -104,7 +104,7 @@ export interface CartItem {
 - [x] Lighting: `<Environment files="/hdri/brown_photostudio_02_1k.hdr">` + hemisphere + one directional light + `<ContactShadows frames={1}>` (rendered once after load, so it's free afterwards)
 - [x] `Room.tsx`: 12 × 10 × 3.4 m room, Poly Haven marble floor, painted plaster walls (navy accent behind the sign), ceiling light panels, glass shop front with an open doorway and pavement outside
 - [x] Props are original, built by `blender/store_props.py`: counter, 2 wall display bays, snake plants, 3D "VIRTU.STORE" sign. (Kenney/Poly Pizza were not needed.)
-- [x] `display_table.glb` ×3 (table 1: Nova, table 2: Pulse, table 3: "colour bar" with every phone in its second colourway) + `podium.glb` with a slowly spinning Zenith Ultra
+- [x] `display_table.glb` ×3 (table 1: Galaxy A17 + A56, table 2: iPhone 17 + Galaxy S25 Ultra, table 3: "colour bar" with every phone in its second colourway) + `podium.glb` with a slowly spinning iPhone 17 Pro Max
 - [x] Retail boxes on the wall bays drawn as one instanced mesh (88 boxes, 1 draw call)
 - [x] Static Rapier colliders for walls, glass, fixtures and plants, all defined once in `src/data/store-layout.ts`. The doorway is open, with a stop 1 m outside
 - [x] Loading overlay (`components/ui/Loader.tsx`) driven by drei `useProgress`

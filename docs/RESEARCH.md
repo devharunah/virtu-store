@@ -9,7 +9,7 @@
 |---|---|---|
 | Local demand (Uganda) | Highest-volume consumer electronics category; the audience relates to it instantly | Strong, but more fragmented (second-hand/mitumba dominates) |
 | 3D asset effort | Simple hard-surface geometry → **built procedurally in Blender in minutes** (done: 5 models, ~20 KB each) | Organic, high-detail meshes → must download from Sketchfab and check each licence; files are often 5–30 MB |
-| Licence risk | Zero: our own brand-neutral designs | High: many "free" shoe models are CC-BY-NC or trademark-heavy (Nike/Adidas logos) |
+| Licence risk | Low for geometry (our own models); the real brand names and logos are trademarks, see §6 | High: many "free" shoe models are CC-BY-NC or trademark-heavy (Nike/Adidas logos) |
 | Variant story | Storage tiers + colourways map cleanly onto the PDF's "size + colour" | Sizes don't change the 3D model |
 
 **Decision:** phones are Aisle 1. Sneakers come later as Aisle 2 using the same `Product` schema, with `variantKind: "size"` instead of `"storage"`.
@@ -20,7 +20,7 @@
 - Transsion brands (Tecno, Itel, Infinix) lead **imports** by unit volume (TechJaja).
 - UCC Q3 2025: ~56.1 M connected devices, of which smartphones were ~34%.
 
-**What this means for the store:** pricing tiers need to reflect a budget-heavy market. Our 5 fictional phones run from about UGX 349k to 3.5M (see BUILD-PLAN catalogue). Real brand names, logos, and product names stay out of the 3D models and copy.
+**What this means for the store:** pricing tiers need to reflect a budget-heavy market. The store now sells real phones: Galaxy A17 5G (UGX 720k), Galaxy A56 (1.39M), iPhone 17 (4.3M), Galaxy S25 Ultra (4.95M) and the iPhone 17 Pro Max (about 6.2M, estimated) on the hero podium. See the BUILD-PLAN catalogue.
 
 Sources: [StatCounter Uganda](https://gs.statcounter.com/vendor-market-share/mobile/uganda) · [Statista](https://statista.com/statistics/570196/mobile-device-vendor-share-in-uganda) · [TechJaja imports](https://techjaja.com/chinese-phones-dominate-ugandas-mobile-phones-imports) · [PC Tech Mag – UCC Q3 2025](https://pctechmag.com/2025/12/ucc-report-ugandas-digital-footprint-grows-modestly-in-q3-2025/)
 
@@ -87,5 +87,5 @@ Search result: there are **no good CC0 phone models** on Poly Pizza or Sketchfab
 1. **ecctrl v2 API changes.** Its docs moved to pmndrs, and the animation wrapper API differs from v1 tutorials. Follow the current README, not old YouTube guides.
 2. **Character licence.** Prefer Quaternius CC0 over Mixamo so the repo stays redistributable.
 3. **Screen content.** Phone screens are a UV-mapped `Screen` material. Mock UIs/wallpapers must be our own artwork, with no real OS UI and no brand logos.
-4. **Trademark.** Product names (Nova, Pulse, Zenith) are placeholders. Check for clashes before any commercial launch.
+4. **Trademark.** The shop uses real product names and puts the Apple logo and SAMSUNG wordmark on the 3D models (an explicit choice). A notice on every page says these are trademarks of Apple and Samsung and that VIRTU.STORE is a demo, not affiliated. Before any commercial use (real sales, ads), get advice; an authorised-reseller agreement or removing the logos would lower the risk.
 5. **Low-end GPUs.** Keep shadows to one baked/contact shadow; avoid real-time shadow maps on mobile.

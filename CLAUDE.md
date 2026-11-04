@@ -8,7 +8,7 @@ The template's standing contract is kept; the project parts are filled in below.
 ## Project context
 
 **VIRTU.STORE** is a walk-in 3D phone showroom for Ugandan shoppers: walk a character through a
-virtual Kampala shop, inspect phones in 3D, choose storage and colour, and check out (simulated).
+virtual Kampala shop, inspect real iPhones and Samsung Galaxys in 3D, choose storage and colour, and check out (simulated).
 Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 
 **Stack**
@@ -52,6 +52,8 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 - Performance budget: first 3D download ≤ 5 MB, ≤ 150 draw calls, DPR ≤ 1.5. Use `/store?debug`
   to see colliders and read `window.__virtu.get().gl.info`.
 - Asset licences: log every third-party asset in `docs/ASSETS-CREDITS.md` before it lands.
+- The phones are real products (Apple, Samsung) with logos on the models. Keep `TrademarkNotice` on
+  every page that sells them, and keep prices labelled as indicative.
 
 ## Environment
 
