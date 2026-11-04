@@ -62,7 +62,27 @@ root.location = Vector((-cx, -cy, -zmin)) * factor
 print(f"[virtu] height {zmax - zmin:.3f} -> {HEIGHT_M} m (x{factor:.4f})")
 
 # Palette texture on the single material, crisp (nearest) sampling.
+# Recolour the palette for our audience: deeper skin tone, near-black hair, a brand-orange shirt.
+RECOLOUR = {
+    "9c7248": "5b3a26",  # skin
+    "7c5823": "1d1714",  # hair
+    "73a7c4": "d9822b",  # T-shirt -> VIRTU orange
+}
+
+
+def _srgb(hex6):
+    return tuple(int(hex6[i : i + 2], 16) / 255 for i in (0, 2, 4))
+
+
 img = bpy.data.images.load(tex_path)
+px = list(img.pixels)
+swap = {tuple(round(c * 255) for c in _srgb(k)): _srgb(v) for k, v in RECOLOUR.items()}
+for i in range(0, len(px), 4):
+    rgb = tuple(round(c * 255) for c in px[i : i + 3])
+    if rgb in swap:
+        px[i : i + 3] = swap[rgb]
+img.pixels = px
+img.pack()
 for mat in mesh.data.materials:
     mat.name = "Character"
     nodes = mat.node_tree.nodes
