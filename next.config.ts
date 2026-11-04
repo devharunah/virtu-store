@@ -19,12 +19,18 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    // 3D assets never change in place (we rename on change), so let browsers and the CDN keep them.
-    const immutable = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
+    // 3D assets are regenerated in place (same file names), so browsers keep them for an hour and
+    // the CDN for a day, then revalidate in the background. Repeat visits stay fast on mobile data.
+    const assets = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    ];
     return [
-      { source: "/models/:path*", headers: immutable },
-      { source: "/textures/:path*", headers: immutable },
-      { source: "/hdri/:path*", headers: immutable },
+      { source: "/models/:path*", headers: assets },
+      { source: "/textures/:path*", headers: assets },
+      { source: "/hdri/:path*", headers: assets },
     ];
   },
 };
