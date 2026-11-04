@@ -17,9 +17,9 @@ export default function StorePage() {
         </Link>
         <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-neutral-600 backdrop-blur">
           <span className="pointer-coarse:hidden">
-            Drag to look · right-drag to move · scroll to zoom
+            WASD to walk · Shift to run · drag to look · E to inspect
           </span>
-          <span className="hidden pointer-coarse:inline">Drag to look · pinch to zoom</span>
+          <span className="hidden pointer-coarse:inline">Joystick to walk · drag to look</span>
         </span>
       </div>
     </main>
