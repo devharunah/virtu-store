@@ -11,7 +11,8 @@ export default defineConfig({
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
-  timeout: 120_000,
+  // Software WebGL (SwiftShader) is slow: walking the store in a test can take a minute or two.
+  timeout: 240_000,
   use: {
     ...devices["Desktop Chrome"],
     baseURL: `http://127.0.0.1:${PORT}`,
