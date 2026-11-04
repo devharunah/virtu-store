@@ -13,7 +13,8 @@ export default function StorePage() {
           VIRTU.STORE
         </Link>
         <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-neutral-600 backdrop-blur">
-          Phase 0 preview · drag to orbit
+          <span className="pointer-coarse:hidden">Drag to look · right-drag to move · scroll to zoom</span>
+          <span className="hidden pointer-coarse:inline">Drag to look · pinch to zoom</span>
         </span>
       </div>
     </main>

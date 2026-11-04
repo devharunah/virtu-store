@@ -32,4 +32,6 @@ Regenerate the models:
 
 - `src/`: Next.js 16 app. It has `types/product.ts`, `data/products.ts` (5 phones, UGX prices), `PhoneModel` (loads a GLB and recolours its `Body` material), and a `/store` smoke-test scene
 
-Status: **Phase 0 done** (except connecting GitHub and Vercel). Next step: **Phase 1, Environment**, in [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md).
+- `/store`: the furnished showroom (Phase 1) with a free camera. Add `?debug` to the URL to see the physics colliders.
+
+Status: **Phases 0 and 1 done** (GitHub and Vercel still to connect). Next: **Phase 2, character and mobile controls**, in [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md).

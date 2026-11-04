@@ -64,6 +64,19 @@ Each entry in `PHONES` is data only: dimensions in mm, corner radius, screen ins
 
 **Through the MCP** you can say, for example, *"Using blender/phones.py, add a 6th phone with a diagonal dual-camera island, then show me a viewport screenshot."* Claude edits the dict, runs the code in your open Blender, and screenshots the result.
 
+### Store props (`blender/store_props.py`)
+This script imports the helpers from `phones.py` and builds the `counter`, `wall_bay`, `plant` and `sign`. They are exported to `blender/out/` and optimised into `public/models/environment/`. Run it the same way as `phones.py`. **It clears the scene, so run it headless, not inside a Blender file you have open.** Prop dimensions are in `public/models/environment/props.json`; the matching colliders are in `src/data/store-layout.ts`.
+
+| Prop | Size (m) | Triangles | Optimised |
+|---|---|---|---|
+| counter | 2.12 × 0.70 × 1.26 | 1,224 | 11 KB |
+| wall_bay | 2.40 × 0.32 × 2.30 | 3,124 | 19 KB |
+| plant | 0.44 × 0.44 × 1.42 | 3,132 | 24 KB |
+| sign | 3.25 × 0.06 × 0.59 | 1,120 | 10 KB |
+
+### Textures and HDRI (Poly Haven)
+1K JPGs from the Poly Haven API, converted to WebP with Pillow (colour q82, normal/ARM q88) into `public/textures/<surface>/{color,normal,arm}.webp`. ARM = AO (R), roughness (G), metalness (B), which is the packing three.js expects, so one texture feeds `aoMap`, `roughnessMap` and `metalnessMap`. Set the repeat from the texture's real-world size (in `Room.tsx`). The HDRI is used as-is (1K `.hdr`).
+
 ## 4. Optimise for the web
 
 ```bash

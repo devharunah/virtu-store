@@ -418,4 +418,5 @@ def main():
     print("[virtu] done")
 
 
-main()
+if __name__ == "__main__":  # Blender's --python runs us as __main__; store_props.py imports the helpers
+    main()

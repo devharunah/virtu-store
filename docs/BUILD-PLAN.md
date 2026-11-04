@@ -99,16 +99,21 @@ export interface CartItem {
 
 **Done when:** `npm run dev` shows a page, and Vercel shows a preview URL.
 
-## Phase 1: Environment (1–2 days)
-- [ ] `Experience.tsx`: `<Canvas shadows={false} dpr={[1, 1.5]} camera={{ fov: 50 }}>` loaded through `dynamic(() => import(...), { ssr: false })`
-- [ ] Lighting: drei `<Environment files="/hdri/<poly-haven-1k>.hdr" />` + one directional light + `<ContactShadows>` under fixtures
-- [ ] `StoreScene.tsx`: about 12 × 10 m room, Poly Haven floor texture, painted walls, shopfront sign "VIRTU.STORE", Kenney/Poly Pizza plants and counter
-- [ ] Place `display_table.glb` ×3 and `podium.glb` ×1 (hero spot for Zenith Ultra)
-- [ ] `<RigidBody type="fixed" colliders="cuboid">` around walls and fixtures
-- [ ] drei `<PerformanceMonitor>` lowers DPR when FPS drops
-- [ ] Loading screen with drei `useProgress`
+## Phase 1: Environment ✅ (done 4 Nov 2026)
+- [x] `Experience.tsx`: `<Canvas>` with DPR 1.5 → 1 via `PerformanceMonitor`, loaded through the client wrapper `ExperienceLoader.tsx` (`ssr: false`)
+- [x] Lighting: `<Environment files="/hdri/brown_photostudio_02_1k.hdr">` + hemisphere + one directional light + `<ContactShadows frames={1}>` (rendered once after load, so it's free afterwards)
+- [x] `Room.tsx`: 12 × 10 × 3.4 m room, Poly Haven marble floor, painted plaster walls (navy accent behind the sign), ceiling light panels, glass shop front with an open doorway and pavement outside
+- [x] Props are original, built by `blender/store_props.py`: counter, 2 wall display bays, snake plants, 3D "VIRTU.STORE" sign. (Kenney/Poly Pizza were not needed.)
+- [x] `display_table.glb` ×3 (table 1: Nova, table 2: Pulse, table 3: "colour bar" with every phone in its second colourway) + `podium.glb` with a slowly spinning Zenith Ultra
+- [x] Retail boxes on the wall bays drawn as one instanced mesh (88 boxes, 1 draw call)
+- [x] Static Rapier colliders for walls, glass, fixtures and plants, all defined once in `src/data/store-layout.ts`. The doorway is open, with a stop 1 m outside
+- [x] Loading overlay (`components/ui/Loader.tsx`) driven by drei `useProgress`
+- [x] `CameraRig.tsx`: free orbit/pan/zoom camera clamped inside the room; field of view widens on portrait phones
+- [x] `?debug` URL flag: draws colliders and exposes renderer stats as `window.__virtu`
 
-**Done when:** a free camera can fly through a lit, furnished showroom at 60 fps on desktop.
+**Measured:** 82 draw calls, ~37k triangles. The production `/store` download is about 3 MB gzipped: Rapier ~815 KB, three.js ~300 KB, other JS ~150 KB, models 192 KB, textures 248 KB, HDRI ~1.26 MB.
+**Not yet measured:** real frame rate. The test browser pane was hidden, which throttles it, so check FPS on a real desktop and on a mid-range Android.
+**Possible saving later:** the HDRI is the largest asset. A 512 px version or a prefiltered cube map could cut about 1 MB.
 
 ## Phase 2: Character and controls, including mobile (2 days)
 - [ ] Download a Quaternius CC0 animated character (GLB with Idle/Walk/Run). Rename clips to ecctrl's expected names if needed (a Blender script or `gltf-transform`)
