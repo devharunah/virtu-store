@@ -10,9 +10,9 @@ import {
 } from "../cart-store";
 
 const cart = () => useCart.getState();
-const A1_MIDNIGHT_64 = lineKey("nova-a1", "midnight", "64");
-const A1_MIDNIGHT_128 = lineKey("nova-a1", "midnight", "128");
-const A1_SAND_64 = lineKey("nova-a1", "sand", "64");
+const A17_BLACK_128 = lineKey("galaxy-a17", "black", "128");
+const A17_BLACK_256 = lineKey("galaxy-a17", "black", "256");
+const A17_BLUE_128 = lineKey("galaxy-a17", "blue", "128");
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -21,108 +21,108 @@ beforeEach(() => {
 
 describe("addItem", () => {
   it("adds a new line with qty 1 by default", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
     expect(cart().lines).toEqual([
-      { key: A1_MIDNIGHT_64, productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 1 },
+      { key: A17_BLACK_128, productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 1 },
     ]);
   });
 
   it("merges into the line with the same product, colour and variant", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 2 });
-    cart().addItem({ productId: "nova-a1", colourId: "sand", variantId: "64" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 2 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "blue", variantId: "128" });
     expect(cart().lines.map((l) => [l.key, l.qty])).toEqual([
-      [A1_MIDNIGHT_64, 3],
-      [A1_SAND_64, 1],
+      [A17_BLACK_128, 3],
+      [A17_BLUE_128, 1],
     ]);
   });
 
   it(`caps a line at ${MAX_QTY}`, () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 4 });
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 4 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 4 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 4 });
     expect(cart().lines[0]?.qty).toBe(MAX_QTY);
   });
 
   it("ignores unknown products, colours, variants and non-positive quantities", () => {
-    cart().addItem({ productId: "nokia-3310", colourId: "midnight", variantId: "64" });
-    cart().addItem({ productId: "nova-a1", colourId: "gold", variantId: "64" });
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "1024" });
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 0 });
+    cart().addItem({ productId: "nokia-3310", colourId: "black", variantId: "128" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "gold", variantId: "128" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "1024" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 0 });
     expect(cart().lines).toEqual([]);
   });
 });
 
 describe("setQty", () => {
   beforeEach(() => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 2 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 2 });
   });
 
   it("sets the quantity", () => {
-    cart().setQty(A1_MIDNIGHT_64, 4);
+    cart().setQty(A17_BLACK_128, 4);
     expect(cart().lines[0]?.qty).toBe(4);
   });
 
   it(`clamps to ${MAX_QTY}`, () => {
-    cart().setQty(A1_MIDNIGHT_64, 99);
+    cart().setQty(A17_BLACK_128, 99);
     expect(cart().lines[0]?.qty).toBe(MAX_QTY);
   });
 
   it("removes the line at 0 or below", () => {
-    cart().setQty(A1_MIDNIGHT_64, 0);
+    cart().setQty(A17_BLACK_128, 0);
     expect(cart().lines).toEqual([]);
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
-    cart().setQty(A1_MIDNIGHT_64, -3);
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
+    cart().setQty(A17_BLACK_128, -3);
     expect(cart().lines).toEqual([]);
   });
 });
 
 describe("changeVariant and changeColour", () => {
   it("moves a line to the new variant", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 2 });
-    cart().changeVariant(A1_MIDNIGHT_64, "128");
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 2 });
+    cart().changeVariant(A17_BLACK_128, "256");
     expect(cart().lines).toEqual([
       {
-        key: A1_MIDNIGHT_128,
-        productId: "nova-a1",
-        colourId: "midnight",
-        variantId: "128",
+        key: A17_BLACK_256,
+        productId: "galaxy-a17",
+        colourId: "black",
+        variantId: "256",
         qty: 2,
       },
     ]);
   });
 
   it("merges into an existing line with the new variant", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 2 });
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "128", qty: 1 });
-    cart().changeVariant(A1_MIDNIGHT_64, "128");
-    expect(cart().lines.map((l) => [l.key, l.qty])).toEqual([[A1_MIDNIGHT_128, 3]]);
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 2 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "256", qty: 1 });
+    cart().changeVariant(A17_BLACK_128, "256");
+    expect(cart().lines.map((l) => [l.key, l.qty])).toEqual([[A17_BLACK_256, 3]]);
   });
 
   it("merges into an existing line with the new colour, capped", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64", qty: 4 });
-    cart().addItem({ productId: "nova-a1", colourId: "sand", variantId: "64", qty: 3 });
-    cart().changeColour(A1_MIDNIGHT_64, "sand");
-    expect(cart().lines.map((l) => [l.key, l.qty])).toEqual([[A1_SAND_64, MAX_QTY]]);
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 4 });
+    cart().addItem({ productId: "galaxy-a17", colourId: "blue", variantId: "128", qty: 3 });
+    cart().changeColour(A17_BLACK_128, "blue");
+    expect(cart().lines.map((l) => [l.key, l.qty])).toEqual([[A17_BLUE_128, MAX_QTY]]);
   });
 
   it("ignores unknown variants and colours", () => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
     const before = cart().lines;
-    cart().changeVariant(A1_MIDNIGHT_64, "1024");
-    cart().changeColour(A1_MIDNIGHT_64, "gold");
+    cart().changeVariant(A17_BLACK_128, "1024");
+    cart().changeColour(A17_BLACK_128, "gold");
     expect(cart().lines).toEqual(before);
   });
 });
 
 describe("removeItem and clear", () => {
   beforeEach(() => {
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
-    cart().addItem({ productId: "pulse-x", colourId: "ink", variantId: "256" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
+    cart().addItem({ productId: "iphone-17", colourId: "white", variantId: "256" });
   });
 
   it("removes one line", () => {
-    cart().removeItem(A1_MIDNIGHT_64);
-    expect(cart().lines.map((l) => l.productId)).toEqual(["pulse-x"]);
+    cart().removeItem(A17_BLACK_128);
+    expect(cart().lines.map((l) => l.productId)).toEqual(["iphone-17"]);
   });
 
   it("clears every line", () => {
@@ -145,7 +145,7 @@ describe("drawer state", () => {
 describe("persistence", () => {
   it("saves lines (and not drawer state) under virtu-cart-v1, version 1", () => {
     cart().openCart();
-    cart().addItem({ productId: "nova-a1", colourId: "midnight", variantId: "64" });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128" });
     const saved = JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) ?? "null");
     expect(saved.version).toBe(1);
     expect(saved.state).toEqual({ lines: cart().lines });
@@ -157,9 +157,9 @@ describe("persistence", () => {
       JSON.stringify({
         state: {
           lines: [
-            { productId: "pulse-x", colourId: "ink", variantId: "256", qty: 2, unitPrice: 1 },
-            { productId: "pulse-x", colourId: "ink", variantId: "256", qty: 9 },
-            { productId: "nova-a1", colourId: "sand", variantId: "64", qty: "lots" },
+            { productId: "iphone-17", colourId: "white", variantId: "256", qty: 2, unitPrice: 1 },
+            { productId: "iphone-17", colourId: "white", variantId: "256", qty: 9 },
+            { productId: "galaxy-a17", colourId: "blue", variantId: "128", qty: "lots" },
             null,
           ],
         },
@@ -169,9 +169,9 @@ describe("persistence", () => {
     await useCart.persist.rehydrate();
     expect(cart().lines).toEqual([
       {
-        key: lineKey("pulse-x", "ink", "256"),
-        productId: "pulse-x",
-        colourId: "ink",
+        key: lineKey("iphone-17", "white", "256"),
+        productId: "iphone-17",
+        colourId: "white",
         variantId: "256",
         qty: MAX_QTY,
       },
@@ -184,31 +184,37 @@ describe("priced lines", () => {
     useCart.setState({
       lines: [
         {
-          key: A1_MIDNIGHT_128,
-          productId: "nova-a1",
-          colourId: "midnight",
-          variantId: "128",
+          key: A17_BLACK_256,
+          productId: "galaxy-a17",
+          colourId: "black",
+          variantId: "256",
           qty: 2,
         },
-        { key: "gone:black:64", productId: "gone", colourId: "black", variantId: "64", qty: 1 },
+        { key: "gone:black:64", productId: "gone", colourId: "black", variantId: "128", qty: 1 },
         {
-          key: "nova-a1:midnight:9",
-          productId: "nova-a1",
-          colourId: "midnight",
+          key: "galaxy-a17:black:9",
+          productId: "galaxy-a17",
+          colourId: "black",
           variantId: "9",
           qty: 1,
         },
-        { key: "nova-a1:gold:64", productId: "nova-a1", colourId: "gold", variantId: "64", qty: 1 },
+        {
+          key: "galaxy-a17:gold:128",
+          productId: "galaxy-a17",
+          colourId: "gold",
+          variantId: "128",
+          qty: 1,
+        },
       ],
     });
     const priced = priceLines(cart().lines);
     expect(priced).toHaveLength(1);
     expect(priced[0]).toMatchObject({
-      key: A1_MIDNIGHT_128,
-      unitPrice: 409_000,
-      lineTotal: 818_000,
-      colour: { label: "Midnight" },
-      variant: { label: "128 GB" },
+      key: A17_BLACK_256,
+      unitPrice: 840_000,
+      lineTotal: 1_680_000,
+      colour: { label: "Black" },
+      variant: { label: "256 GB" },
     });
   });
 
@@ -216,20 +222,20 @@ describe("priced lines", () => {
     useCart.setState({
       lines: [
         {
-          key: A1_MIDNIGHT_64,
-          productId: "nova-a1",
-          colourId: "midnight",
-          variantId: "64",
+          key: A17_BLACK_128,
+          productId: "galaxy-a17",
+          colourId: "black",
+          variantId: "128",
           qty: 2,
         },
-        { key: "gone:black:64", productId: "gone", colourId: "black", variantId: "64", qty: 3 },
+        { key: "gone:black:64", productId: "gone", colourId: "black", variantId: "128", qty: 3 },
       ],
     });
     const { result } = renderHook(() => ({ lines: useCartLines(), count: useCartCount() }));
-    expect(result.current.lines.map((l) => l.key)).toEqual([A1_MIDNIGHT_64]);
+    expect(result.current.lines.map((l) => l.key)).toEqual([A17_BLACK_128]);
     expect(result.current.count).toBe(2);
 
-    act(() => cart().addItem({ productId: "pulse-x", colourId: "ink", variantId: "256" }));
+    act(() => cart().addItem({ productId: "iphone-17", colourId: "white", variantId: "256" }));
     expect(result.current.count).toBe(3);
   });
 });

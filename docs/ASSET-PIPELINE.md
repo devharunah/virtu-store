@@ -46,19 +46,18 @@ Add `-- --no-render` to skip the preview renders.
 
 ## 3. Procedural phone recipe (`blender/phones.py`)
 
-Each entry in `PHONES` is data only: dimensions in mm, corner radius, screen inset, island kind, lens list, flash position, and colour/metal/roughness.
+Each entry in `PHONES` is data only, approximating a real phone (iPhone 17 Pro Max, iPhone 17, Galaxy S25 Ultra, A56, A17): dimensions in mm, corner radius, screen inset, front camera style, raised islands, lens list, flash, side buttons, logo, and colour/metal/roughness.
 
 1. **Body**: a rounded-rectangle outline (8 segments per corner) extruded through the thickness. A Bevel modifier (angle-limited) softens only the front/back rims.
-2. **Front**: a black `Bezel` n-gon, then the `Screen` n-gon inset by `inset` mm with planar UVs 0–1, plus a punch-hole selfie camera.
-3. **Camera island** (`kind`):
-   - `none`: lenses sit directly on the back (budget look)
-   - `pill`: a vertical capsule, raised 1.4 mm
-   - `square`: a rounded square, raised 1.4 mm
-   - `circle`: a large round glass disc, raised 1.6 mm
-   - `bar`: a full-width glass camera bar, raised 1.8 mm
+2. **Front**: a black `Bezel` n-gon, then the `Screen` n-gon inset by `inset` mm with planar UVs 0–1, plus the front camera: `selfie="hole"` (punch-hole) or `"island"` (Apple's Dynamic Island pill).
+3. **Camera islands** (`islands`, a list; it can be empty): each is `kind="rrect"` (with `w`, `h`, `r`) or `"circle"` (with `d`), plus `depth` and `material` (`"body"` = same colour as the back, `"glass"` = black glass). Lenses sit on the highest island. Examples:
+   - Galaxy A17/A56: one vertical pill or "key island" in body colour;
+   - iPhone 17 Pro Max: one full-width `rrect` plateau, 77 × 46 mm;
+   - Galaxy S25 Ultra: no island, so the lenses sit directly on the back.
 4. **Lenses**: a metal `LensRing` cylinder with a `Glass` cylinder inside. The flash is a small emissive disc.
-5. **Buttons**: power + volume rocker on the +X edge.
-6. Join → smooth by angle (35°) → export GLB → record in `manifest.json`.
+5. **Buttons**: `buttons=[(side, height_fraction, length_mm), ...]`, where side `+1` is the right edge seen from the front. iPhones get the Camera Control and the Action button.
+6. **Logo** (`logo=dict(svg, width, z, finish)`): the SVG in `blender/brand/` (from simple-icons, CC0 paths) is imported with `bpy.ops.import_curve.svg`, turned into a flat mesh, **mirrored in X** (the back faces +Y, so +X appears on a viewer's left) and seated 0.08 mm above the back. Its own `Logo` material is mirror metal (Apple) or a light-grey print (Samsung). It is never recoloured: only `Body` is.
+7. Join → smooth by angle (35°) → export GLB → record in `manifest.json`, which lists each phone's materials; a Jest test checks every phone has `Body`, `Screen` and `Logo`.
 
 **Adding a phone:** copy a dict in `PHONES`, change the numbers and the id, re-run the script, then optimise (§4). Add the product to `src/data/products.ts`.
 

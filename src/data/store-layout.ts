@@ -58,8 +58,8 @@ export const FIXTURES: Fixture[] = [
     surfaceY: 0.9,
     spacing: 0.55,
     phones: [
-      { productId: "nova-a1", colourIndex: 0 },
-      { productId: "nova-a5", colourIndex: 0 },
+      { productId: "galaxy-a17", colourIndex: 0 },
+      { productId: "galaxy-a56", colourIndex: 0 },
     ],
   },
   {
@@ -70,8 +70,8 @@ export const FIXTURES: Fixture[] = [
     surfaceY: 0.9,
     spacing: 0.55,
     phones: [
-      { productId: "pulse-x", colourIndex: 0 },
-      { productId: "pulse-x-pro", colourIndex: 0 },
+      { productId: "iphone-17", colourIndex: 0 },
+      { productId: "galaxy-s25-ultra", colourIndex: 0 },
     ],
   },
   {
@@ -83,10 +83,12 @@ export const FIXTURES: Fixture[] = [
     surfaceY: 0.9,
     spacing: 0.3,
     phoneScale: 1.2,
-    phones: ["nova-a1", "nova-a5", "pulse-x", "pulse-x-pro", "zenith-ultra"].map((productId) => ({
-      productId,
-      colourIndex: 1,
-    })),
+    phones: ["galaxy-a17", "galaxy-a56", "iphone-17", "galaxy-s25-ultra", "iphone-17-pro-max"].map(
+      (productId) => ({
+        productId,
+        colourIndex: 1,
+      }),
+    ),
   },
   {
     id: "podium",
@@ -97,7 +99,7 @@ export const FIXTURES: Fixture[] = [
     spacing: 0,
     phoneScale: 2.4,
     spinPhones: true,
-    phones: [{ productId: "zenith-ultra", colourIndex: 0 }],
+    phones: [{ productId: "iphone-17-pro-max", colourIndex: 0 }],
   },
   {
     id: "wall-bay-left",

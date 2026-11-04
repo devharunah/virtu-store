@@ -1,5 +1,6 @@
 "use client";
 
+import { TrademarkNotice } from "@/components/ui/TrademarkNotice";
 import { formatUGX } from "@/lib/format-ugx";
 import { DELIVERY_FEE, cartTotals } from "@/lib/pricing";
 import { MAX_QTY, MIN_QTY, type PricedCartLine, useCart, useCartLines } from "@/store/cart-store";
@@ -134,6 +135,7 @@ export default function CartDrawer() {
               <p className="text-sm text-neutral-600">
                 Delivery from {formatUGX(DELIVERY_FEE)} by boda, calculated at checkout.
               </p>
+              <TrademarkNotice className="mt-3" />
               <Link
                 href="/checkout"
                 onClick={closeCart}

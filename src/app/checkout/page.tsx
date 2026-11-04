@@ -1,6 +1,7 @@
 import CartButton from "@/components/cart/CartButton";
 import CartDrawer from "@/components/cart/CartDrawer";
 import CheckoutFlow from "@/components/checkout/CheckoutFlow";
+import { TrademarkNotice } from "@/components/ui/TrademarkNotice";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -28,6 +29,7 @@ export default function CheckoutPage() {
       </header>
       <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16 sm:px-8">
         <CheckoutFlow />
+        <TrademarkNotice className="mt-12" />
       </div>
       <CartDrawer />
     </main>

@@ -17,15 +17,15 @@ const product = (id: string) => {
 
 describe("unitPrice", () => {
   it("is the base price for the base variant", () => {
-    expect(unitPrice(product("nova-a1"), "64")).toBe(349_000);
+    expect(unitPrice(product("galaxy-a17"), "128")).toBe(720_000);
   });
 
   it("adds the variant's price delta", () => {
-    expect(unitPrice(product("nova-a1"), "128")).toBe(409_000);
+    expect(unitPrice(product("galaxy-a17"), "256")).toBe(840_000);
   });
 
   it("returns undefined for a variant the product doesn't have", () => {
-    expect(unitPrice(product("nova-a1"), "1024")).toBeUndefined();
+    expect(unitPrice(product("galaxy-a17"), "1024")).toBeUndefined();
   });
 });
 

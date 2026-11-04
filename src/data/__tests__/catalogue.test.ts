@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getProduct, products } from "../products";
 import { FIXTURES, HALF_D, HALF_W, ROOM, SPAWN } from "../store-layout";
@@ -26,8 +26,34 @@ describe("product catalogue", () => {
   );
 
   it("finds products by id", () => {
-    expect(getProduct("zenith-ultra")?.name).toBe("Zenith Ultra");
+    expect(getProduct("iphone-17-pro-max")?.name).toBe("iPhone 17 Pro Max");
     expect(getProduct("nope")).toBeUndefined();
+  });
+});
+
+describe("phone models", () => {
+  const manifest = JSON.parse(readFileSync(publicFile("/models/manifest.json"), "utf8")) as {
+    phones: { id: string; file: string; materials: string[] }[];
+  };
+
+  it("has a model entry for every product", () => {
+    for (const p of products) {
+      expect(manifest.phones.find((m) => m.id === p.id)?.file).toBe(p.modelUrl);
+    }
+  });
+
+  it.each(manifest.phones.map((m) => [m.id, m] as const))(
+    "%s keeps the material contract (Body recolour, Screen wallpaper, brand Logo)",
+    (_id, m) => {
+      expect(m.materials).toEqual(expect.arrayContaining(["Body", "Screen", "Logo"]));
+    },
+  );
+
+  it("sells only Apple and Samsung phones, with the brand in the name", () => {
+    for (const p of products) {
+      expect(["Apple", "Samsung"]).toContain(p.brand);
+      expect(p.name).toMatch(p.brand === "Apple" ? /^iPhone/ : /^Galaxy/);
+    }
   });
 });
 

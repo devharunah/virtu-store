@@ -1,3 +1,4 @@
+import { TrademarkNotice } from "@/components/ui/TrademarkNotice";
 import { products } from "@/data/products";
 import { formatUGX } from "@/lib/format-ugx";
 import Image from "next/image";
@@ -18,9 +19,9 @@ export default function Home() {
           Take it home.
         </h1>
         <p className="max-w-xl text-lg text-neutral-600">
-          VIRTU.STORE is a 3D phone shop you can walk around in. Inspect every phone in 360°, choose
-          storage and colour, and order for delivery. {products.length} phones from{" "}
-          {formatUGX(from)}.
+          VIRTU.STORE is a 3D phone shop you can walk around in. Pick up the iPhone 17 Pro Max,
+          iPhone 17 or a Samsung Galaxy, spin it in 360°, choose storage and colour, and order for
+          delivery. {products.length} phones from {formatUGX(from)}.
         </p>
         <div>
           <Link
@@ -38,6 +39,7 @@ export default function Home() {
           priority
           className="w-full rounded-2xl border border-black/10"
         />
+        <TrademarkNotice className="max-w-3xl" />
       </div>
     </main>
   );

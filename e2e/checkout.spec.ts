@@ -2,18 +2,24 @@ import { type Page, expect, test } from "@playwright/test";
 
 const CART_KEY = "virtu-cart-v1";
 
-// Nova A1 Midnight 128 GB × 2 = 818,000; Pulse X Ink 256 GB × 1 = 1,019,000.
+// Galaxy A17 Black 256 GB × 2 = 1,680,000; Galaxy A56 Graphite 128 GB × 1 = 1,390,000.
 const SEEDED_CART = {
   state: {
     lines: [
       {
-        key: "nova-a1:midnight:128",
-        productId: "nova-a1",
-        colourId: "midnight",
-        variantId: "128",
+        key: "galaxy-a17:black:256",
+        productId: "galaxy-a17",
+        colourId: "black",
+        variantId: "256",
         qty: 2,
       },
-      { key: "pulse-x:ink:256", productId: "pulse-x", colourId: "ink", variantId: "256", qty: 1 },
+      {
+        key: "galaxy-a56:awesome-graphite:128",
+        productId: "galaxy-a56",
+        colourId: "awesome-graphite",
+        variantId: "128",
+        qty: 1,
+      },
     ],
   },
   version: 1,
@@ -48,9 +54,9 @@ test("pays with MTN MoMo and lands on the success screen with an empty bag", asy
   await expect(page).toHaveTitle("Checkout · VIRTU.STORE");
   await expect(page.getByText("Demo store: no real payment is taken")).toBeVisible();
   const summary = page.getByTestId("order-summary");
-  await expect(summary.getByText("Nova A1")).toBeVisible();
-  await expect(summary.getByText("Pulse X")).toBeVisible();
-  await expect(page.getByTestId("order-total")).toHaveText("UGX 1,847,000");
+  await expect(summary.getByText("Galaxy A17 5G")).toBeVisible();
+  await expect(summary.getByText("Galaxy A56 5G")).toBeVisible();
+  await expect(page.getByTestId("order-total")).toHaveText("UGX 3,080,000");
 
   // An empty form shows every error.
   await page.getByRole("button", { name: /^Pay UGX/ }).click();
@@ -72,7 +78,7 @@ test("pays with MTN MoMo and lands on the success screen with an empty bag", asy
 
   await page.getByLabel("Phone number").fill("0772 123456");
   await expect(page.getByText("MTN number", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Pay UGX 1,847,000" }).click();
+  await page.getByRole("button", { name: "Pay UGX 3,080,000" }).click();
 
   await expect(
     page.getByRole("heading", { name: "Approve the payment prompt on your phone" }),
@@ -88,7 +94,7 @@ test("pays with MTN MoMo and lands on the success screen with an empty bag", asy
       "A boda rider will call you on +256 772 123456. Estimated delivery: today, within 2–4 hours.",
     ),
   ).toBeVisible();
-  await expect(page.getByTestId("order-total")).toHaveText("UGX 1,847,000");
+  await expect(page.getByTestId("order-total")).toHaveText("UGX 3,080,000");
   await expect(
     page.getByRole("main").getByRole("link", { name: "Back to the showroom" }).last(),
   ).toHaveAttribute("href", "/store");
@@ -112,8 +118,8 @@ test("cash on delivery outside Kampala skips the phone prompt", async ({ page })
   await page.getByLabel("Delivery area").selectOption("Outside Kampala");
   await page.getByLabel("Landmark or address notes").fill("Gulu, near the main market");
   await page.getByRole("radio", { name: /Cash on delivery/ }).check();
-  await expect(page.getByTestId("order-total")).toHaveText("UGX 1,862,000");
-  await page.getByRole("button", { name: "Place order · UGX 1,862,000" }).click();
+  await expect(page.getByTestId("order-total")).toHaveText("UGX 3,095,000");
+  await page.getByRole("button", { name: "Place order · UGX 3,095,000" }).click();
 
   await expect(page.getByRole("heading", { name: /Order placed/ })).toBeVisible();
   await expect(page.getByText(/Estimated delivery: 1–2 days\./)).toBeVisible();
@@ -122,7 +128,7 @@ test("cash on delivery outside Kampala skips the phone prompt", async ({ page })
 test("the bag drawer edits lines and the summary follows", async ({ page }) => {
   await seedCart(page);
   await page.goto("/checkout");
-  await expect(page.getByTestId("order-total")).toHaveText("UGX 1,847,000");
+  await expect(page.getByTestId("order-total")).toHaveText("UGX 3,080,000");
 
   const bagButton = page.getByRole("button", { name: "Open bag, 3 items" });
   await bagButton.click();
@@ -130,25 +136,25 @@ test("the bag drawer edits lines and the summary follows", async ({ page }) => {
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("button", { name: "Close bag" })).toBeFocused();
   await expect(drawer.getByTestId("cart-line")).toHaveCount(2);
-  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 1,837,000");
+  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 3,070,000");
 
-  // Nova A1: 2 -> 3, then 128 GB -> 64 GB (349,000 × 3 = 1,047,000).
-  await drawer.getByRole("button", { name: "Increase quantity of Nova A1" }).click();
-  await drawer.getByLabel("Storage for Nova A1").selectOption("64");
-  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 2,066,000");
+  // Galaxy A17: 2 -> 3, then 256 GB -> 128 GB (720,000 × 3 = 2,160,000).
+  await drawer.getByRole("button", { name: "Increase quantity of Galaxy A17 5G" }).click();
+  await drawer.getByLabel("Storage for Galaxy A17 5G").selectOption("128");
+  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 3,550,000");
 
-  await drawer.getByRole("button", { name: "Remove Pulse X from bag" }).click();
+  await drawer.getByRole("button", { name: "Remove Galaxy A56 5G from bag" }).click();
   await expect(drawer.getByTestId("cart-line")).toHaveCount(1);
-  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 1,047,000");
+  await expect(drawer.getByTestId("cart-subtotal")).toHaveText("UGX 2,160,000");
 
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
   await expect(page.getByRole("button", { name: "Open bag, 3 items" })).toBeFocused();
-  await expect(page.getByTestId("order-total")).toHaveText("UGX 1,057,000");
+  await expect(page.getByTestId("order-total")).toHaveText("UGX 2,170,000");
 
   // Emptying the bag shows the empty state, and "Keep browsing" closes it.
   await page.getByRole("button", { name: "Open bag, 3 items" }).click();
-  await drawer.getByRole("button", { name: "Remove Nova A1 from bag" }).click();
+  await drawer.getByRole("button", { name: "Remove Galaxy A17 5G from bag" }).click();
   await expect(drawer.getByText("Your bag is empty")).toBeVisible();
   await drawer.getByRole("button", { name: "Keep browsing" }).click();
   await expect(drawer).toBeHidden();

@@ -2,6 +2,8 @@ export type VariantKind = "storage" | "size"; // "size" is reserved for sneakers
 
 export type Tier = "Budget" | "Entry" | "Mid-range" | "Upper mid" | "Flagship";
 
+export type Brand = "Apple" | "Samsung";
+
 export interface ColourOption {
   id: string;
   label: string;
@@ -23,6 +25,7 @@ export interface ProductSpecs {
 
 export interface Product {
   id: string; // matches the GLB filename
+  brand: Brand;
   name: string;
   tier: Tier;
   basePrice: number; // UGX, integer

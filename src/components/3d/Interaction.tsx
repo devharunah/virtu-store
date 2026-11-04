@@ -44,7 +44,9 @@ export function Interaction() {
         onClick={() => openInspect(product.id, colour?.id)}
         className="whitespace-nowrap rounded-full bg-neutral-900/90 px-4 py-2 text-left text-white shadow-lg backdrop-blur"
       >
-        <span className="block text-sm font-semibold">{product.name}</span>
+        <span className="block text-sm font-semibold">
+          {product.brand} {product.name}
+        </span>
         <span className="block text-xs text-white/75">
           from {formatUGX(product.basePrice)} ·{" "}
           <kbd className="rounded bg-white/20 px-1 font-sans pointer-coarse:hidden">E</kbd>
