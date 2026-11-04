@@ -1,4 +1,6 @@
 import ExperienceLoader from "@/components/3d/ExperienceLoader";
+import CartButton from "@/components/cart/CartButton";
+import CartDrawer from "@/components/cart/CartDrawer";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,13 +17,17 @@ export default function StorePage() {
         >
           VIRTU.STORE
         </Link>
-        <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-neutral-600 backdrop-blur">
-          <span className="pointer-coarse:hidden">
-            WASD to walk · Shift to run · drag to look · E to inspect
+        <div className="flex items-center gap-3">
+          <span className="hidden rounded-full bg-white/80 px-3 py-1 text-xs text-neutral-600 backdrop-blur sm:inline">
+            <span className="pointer-coarse:hidden">
+              WASD to walk · Shift to run · drag to look · E to inspect
+            </span>
+            <span className="hidden pointer-coarse:inline">Joystick to walk · drag to look</span>
           </span>
-          <span className="hidden pointer-coarse:inline">Joystick to walk · drag to look</span>
-        </span>
+          <CartButton />
+        </div>
       </div>
+      <CartDrawer />
     </main>
   );
 }

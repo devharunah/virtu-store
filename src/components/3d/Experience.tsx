@@ -9,6 +9,7 @@ import { ProductPanel } from "@/components/products/ProductPanel";
 import { Loader } from "@/components/ui/Loader";
 import { TouchControls } from "@/components/ui/TouchControls";
 import { ROOM } from "@/data/store-layout";
+import { useCart } from "@/store/cart-store";
 import { useUiStore } from "@/store/ui-store";
 import {
   ContactShadows,
@@ -36,6 +37,7 @@ function useInteractionKeys() {
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       const ui = useUiStore.getState();
+      if (useCart.getState().isOpen) return; // the bag handles its own keys
       if (e.key === "Escape" && ui.inspectingId) ui.closeInspect();
       if ((e.key === "e" || e.key === "E") && !ui.inspectingId && ui.nearProductId) {
         ui.openInspect(ui.nearProductId, ui.nearColourId ?? undefined);

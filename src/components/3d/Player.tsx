@@ -1,6 +1,7 @@
 "use client";
 
 import { SPAWN } from "@/data/store-layout";
+import { useCart } from "@/store/cart-store";
 import { useUiStore } from "@/store/ui-store";
 import { useAnimations, useGLTF, useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
@@ -84,7 +85,8 @@ export function Player() {
     playerState.position.copy(e.currPos);
     playerState.ready = true;
 
-    if (useUiStore.getState().inspectingId) {
+    // Stand still while a panel or the bag is open (keys then belong to the UI).
+    if (useUiStore.getState().inspectingId || useCart.getState().isOpen) {
       e.setMovement(STOP);
       return;
     }

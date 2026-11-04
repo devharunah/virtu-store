@@ -2,10 +2,12 @@
 
 import { getProduct } from "@/data/products";
 import { formatUGX } from "@/lib/format-ugx";
+import { unitPrice } from "@/lib/pricing";
+import { useCart } from "@/store/cart-store";
 import { selectionFor, useUiStore } from "@/store/ui-store";
-import { X } from "lucide-react";
+import { Check, ShoppingBag, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const InspectViewer = dynamic(() => import("./InspectViewer"), {
   ssr: false,
@@ -20,6 +22,9 @@ export function ProductPanel() {
   const selectColour = useUiStore((s) => s.selectColour);
   const selectVariant = useUiStore((s) => s.selectVariant);
   const closeButton = useRef<HTMLButtonElement>(null);
+  const addItem = useCart((s) => s.addItem);
+  const openCart = useCart((s) => s.openCart);
+  const [added, setAdded] = useState<string | null>(null);
 
   const product = inspectingId ? getProduct(inspectingId) : undefined;
 
@@ -31,8 +36,17 @@ export function ProductPanel() {
 
   const sel = selectionFor(selections, product);
   const colour = product.colours.find((c) => c.id === sel.colourId);
-  const variant = product.variants.find((v) => v.id === sel.variantId);
-  const price = product.basePrice + (variant?.priceDelta ?? 0);
+  const price = unitPrice(product, sel.variantId) ?? product.basePrice;
+  const addedKey = `${product.id}:${sel.colourId}:${sel.variantId}`;
+
+  const addToBag = () => {
+    addItem({ productId: product.id, colourId: sel.colourId, variantId: sel.variantId });
+    setAdded(addedKey);
+  };
+  const viewBag = () => {
+    closeInspect();
+    openCart();
+  };
 
   return (
     <div className="absolute inset-0 z-30 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center sm:p-6">
@@ -136,7 +150,36 @@ export function ProductPanel() {
             ))}
           </dl>
 
-          <div id="product-actions" className="mt-auto" />
+          <div className="mt-auto flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={addToBag}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 font-semibold text-white transition-colors hover:bg-neutral-700"
+            >
+              {added === addedKey ? (
+                <>
+                  <Check className="size-5" aria-hidden="true" /> Added: add another
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="size-5" aria-hidden="true" /> Add to bag ·{" "}
+                  {formatUGX(price)}
+                </>
+              )}
+            </button>
+            {added === addedKey && (
+              <button
+                type="button"
+                onClick={viewBag}
+                className="h-11 rounded-full border border-neutral-900 font-medium hover:bg-black/5"
+              >
+                View bag and check out
+              </button>
+            )}
+            <p className="text-center text-xs text-neutral-500">
+              Delivered by boda in Kampala · pay with MoMo, Airtel Money or cash
+            </p>
+          </div>
         </div>
       </dialog>
     </div>
