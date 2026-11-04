@@ -2,8 +2,8 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "next-dev",
-      "runtimeExecutable": "npm",
+      "name": "web",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "run",
         "dev"
