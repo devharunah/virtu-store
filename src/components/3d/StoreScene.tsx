@@ -8,11 +8,14 @@ import {
   WALL_BAY_INNER_WIDTH,
   WALL_BAY_SHELVES,
 } from "@/data/store-layout";
+import { slotLocalX } from "@/lib/display-slots";
+import { useUiStore } from "@/store/ui-store";
+import type { Product } from "@/types/product";
 import { Instance, Instances, useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { type ThreeEvent, useFrame } from "@react-three/fiber";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { useMemo, useRef } from "react";
-import type * as THREE from "three";
+import * as THREE from "three";
 import { PhoneModel } from "./PhoneModel";
 import { Room } from "./Room";
 
@@ -30,6 +33,61 @@ function SpinningGroup({ spin, children }: { spin?: boolean; children: React.Rea
   return <group ref={ref}>{children}</group>;
 }
 
+/** One phone on display: grows a little when the visitor is next to it, and opens on click/tap. */
+function DisplayPhone({
+  slotId,
+  product,
+  colourIndex,
+  facing,
+  scale,
+  spin,
+}: {
+  slotId: string;
+  product: Product;
+  colourIndex: number;
+  facing: number;
+  scale: number;
+  spin: boolean;
+}) {
+  const near = useUiStore((s) => s.nearSlotId === slotId);
+  const openInspect = useUiStore((s) => s.openInspect);
+  const grow = useRef<THREE.Group>(null);
+  const colour = product.colours[colourIndex];
+
+  useFrame((_, dt) => {
+    const g = grow.current;
+    if (!g) return;
+    const goal = near ? 1.12 : 1;
+    g.scale.setScalar(THREE.MathUtils.damp(g.scale.x, goal, 10, dt));
+  });
+
+  const onClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > 6) return; // that was a camera drag, not a click
+    e.stopPropagation();
+    openInspect(product.id, colour?.id);
+  };
+
+  return (
+    <SpinningGroup spin={spin}>
+      <group ref={grow}>
+        <PhoneModel
+          url={product.modelUrl}
+          colour={colour?.hex}
+          rotation-y={facing}
+          scale={scale}
+          onClick={onClick}
+          onPointerOver={() => {
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "";
+          }}
+        />
+      </group>
+    </SpinningGroup>
+  );
+}
+
 function FixturePhones({ fixture }: { fixture: Fixture }) {
   const phones = fixture.phones ?? [];
   const spacing = fixture.spacing ?? 0.4;
@@ -39,19 +97,22 @@ function FixturePhones({ fixture }: { fixture: Fixture }) {
       {phones.map((slot, i) => {
         const product = getProduct(slot.productId);
         if (!product) return null;
-        const x = (i - (phones.length - 1) / 2) * spacing;
         // Alternate front/back so visitors see screens and camera designs
         const facing = fixture.spinPhones ? Math.PI * 0.85 : i % 2 ? Math.PI * 0.88 : 0.2;
+        const slotId = `${fixture.id}:${i}`;
         return (
-          <group key={`${slot.productId}-${i}`} position={[x, fixture.surfaceY ?? 0, 0]}>
-            <SpinningGroup spin={fixture.spinPhones ?? false}>
-              <PhoneModel
-                url={product.modelUrl}
-                colour={product.colours[slot.colourIndex]?.hex}
-                rotation-y={facing}
-                scale={scale}
-              />
-            </SpinningGroup>
+          <group
+            key={slotId}
+            position={[slotLocalX(i, phones.length, spacing), fixture.surfaceY ?? 0, 0]}
+          >
+            <DisplayPhone
+              slotId={slotId}
+              product={product}
+              colourIndex={slot.colourIndex}
+              facing={facing}
+              scale={scale}
+              spin={fixture.spinPhones ?? false}
+            />
           </group>
         );
       })}

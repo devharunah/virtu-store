@@ -15,11 +15,14 @@ export const ROOM = {
 export const HALF_W = ROOM.width / 2;
 export const HALF_D = ROOM.depth / 2;
 
-/** Where the camera (and in Phase 2 the player) starts: just inside the door, facing the hero podium. */
+/** Where the visitor's feet start: just inside the door, facing the hero podium (toward -Z). */
 export const SPAWN = {
-  position: [0, 1.65, 4.3] as [number, number, number],
+  position: [0, 0, 2.6] as [number, number, number],
   lookAt: [0, 1.1, -2] as [number, number, number],
 };
+
+/** How close (metres, on the floor plane) the visitor must stand to a phone to inspect it. */
+export const INTERACT_RADIUS = 1.5;
 
 export type Vec3 = [number, number, number];
 
@@ -75,7 +78,7 @@ export const FIXTURES: Fixture[] = [
     // "Colour bar": every phone in its second colourway
     id: "table-3",
     model: TABLE,
-    position: [0, 0, 1.7],
+    position: [0, 0, 0.9],
     collider: TABLE_COLLIDER,
     surfaceY: 0.9,
     spacing: 0.3,

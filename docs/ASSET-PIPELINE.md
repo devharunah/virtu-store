@@ -74,6 +74,14 @@ This script imports the helpers from `phones.py` and builds the `counter`, `wall
 | plant | 0.44 × 0.44 × 1.42 | 3,132 | 24 KB |
 | sign | 3.25 × 0.06 × 0.59 | 1,120 | 10 KB |
 
+### Player character (`blender/character.py`)
+Download "Animated Human" by Quaternius (CC0) from OpenGameArt, extract it, then:
+```bash
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python blender/character.py -- "<pack>/FBX/Animated Human.fbx" "<pack>/Blend/Textures/ClothedDarkSkin.png"
+npx @gltf-transform/cli optimize blender/out/player.glb public/models/characters/player.glb --compress meshopt --simplify false --palette false --texture-compress webp
+```
+The clips key the armature object's own transform, so the script scales a **parent root** node (scaling the armature would be overwritten on export). It recolours the palette PNG in place (`RECOLOUR` map) and keeps only `idle`, `walk`, `run`, `jump`. Result: 1.75 m, ~234 KB.
+
 ### Textures and HDRI (Poly Haven)
 1K JPGs from the Poly Haven API, converted to WebP with Pillow (colour q82, normal/ARM q88) into `public/textures/<surface>/{color,normal,arm}.webp`. ARM = AO (R), roughness (G), metalness (B), which is the packing three.js expects, so one texture feeds `aoMap`, `roughnessMap` and `metalnessMap`. Set the repeat from the texture's real-world size (in `Room.tsx`). The HDRI is used as-is (1K `.hdr`).
 
