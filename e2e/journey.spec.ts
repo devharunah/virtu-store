@@ -12,11 +12,11 @@ test("a visitor walks in, picks a phone and completes a simulated checkout", asy
   await page.goto("/");
   await page.getByRole("link", { name: "Enter the store" }).click();
   await expect(page).toHaveURL(/\/store$/);
-  await expect(page.getByText(/Opening the showroom/)).toBeHidden({ timeout: 90_000 });
+  await expect(page.getByTestId("scene-loader")).toBeHidden({ timeout: 90_000 });
 
   // 3–4. Walk to a phone (debug hooks only exist with ?debug, so reload with it)
   await page.goto("/store?debug");
-  await expect(page.getByText(/Opening the showroom/)).toBeHidden({ timeout: 90_000 });
+  await expect(page.getByTestId("scene-loader")).toBeHidden({ timeout: 90_000 });
   await page.waitForFunction(() => window.__virtuPlayer?.ready === true, null, { timeout: 30_000 });
   await page.keyboard.down("KeyW");
   await expect

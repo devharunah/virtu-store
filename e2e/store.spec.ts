@@ -4,7 +4,7 @@ async function openShowroom(page: Page, errors: string[]) {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/store?debug");
   await expect(page.locator("canvas").first()).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByText(/Opening the showroom/)).toBeHidden({ timeout: 90_000 });
+  await expect(page.getByTestId("scene-loader")).toBeHidden({ timeout: 90_000 });
   await page.waitForFunction(() => window.__virtuPlayer?.ready === true, null, { timeout: 30_000 });
 }
 
