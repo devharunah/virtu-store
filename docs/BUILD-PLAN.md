@@ -90,7 +90,7 @@ export interface CartItem {
 
 ---
 
-## Phase 0: Project setup (½ day)
+## Phase 0: Project setup
 - [ ] `npx create-next-app@latest . --ts --tailwind --app --src-dir --eslint --import-alias "@/*"`
 - [ ] `npm i three @react-three/fiber @react-three/drei @react-three/rapier ecctrl leva zustand lucide-react`
 - [ ] `npm i -D @types/three`
@@ -115,7 +115,7 @@ export interface CartItem {
 **Not yet measured:** real frame rate. The test browser pane was hidden, which throttles it, so check FPS on a real desktop and on a mid-range Android.
 **Possible saving later:** the HDRI is the largest asset. A 512 px version or a prefiltered cube map could cut about 1 MB.
 
-## Phase 2: Character and controls, including mobile (2 days)
+## Phase 2: Character and controls, including mobile
 - [ ] Download a Quaternius CC0 animated character (GLB with Idle/Walk/Run). Rename clips to ecctrl's expected names if needed (a Blender script or `gltf-transform`)
 - [ ] `Player.tsx`: `<KeyboardControls map={...}>` + `<Ecctrl>` capsule + animation hookup (follow the **current ecctrl v2 README**)
 - [ ] Third-person follow camera with mouse/touch drag orbit; camera collision with walls
@@ -124,7 +124,7 @@ export interface CartItem {
 
 **Done when:** WASD and the joystick move the character, they can't walk through walls or tables, and the walk/idle animations blend.
 
-## Phase 3: Phones and interaction (2 days)
+## Phase 3: Phones and interaction
 - [ ] `data/products.ts` from the catalogue above
 - [ ] `PhoneModel.tsx`: `useGLTF(url)` (meshopt decoding is built into drei) → clone the scene → find the material named `Body` and set its colour from the selected colour; give `Screen` a wallpaper texture from `/screens/`
 - [ ] `PhoneDisplay.tsx`: phone slowly rotating on its stand + `<CuboidCollider sensor>` (about 1.5 m) → when the player enters, set `nearProductId` in `ui-store`
@@ -134,7 +134,7 @@ export interface CartItem {
 
 **Done when:** walking up to any of the 5 phones → E → you can rotate/zoom it, change colour and storage, and see the price update.
 
-## Phase 4: Cart and simulated checkout (1–2 days)
+## Phase 4: Cart and simulated checkout
 - [ ] `cart-store.ts` (zustand + `persist` to localStorage): add, remove, update qty/variant, totals
 - [ ] `CartDrawer`: line items, change storage/qty, remove, subtotal, delivery fee (flat UGX 10k inside Kampala), total
 - [ ] `/checkout`: name, phone number, delivery area (Kampala divisions dropdown), payment method radio **MTN MoMo / Airtel Money / Cash on delivery**, all **mock**. "Pay" shows a fake "Approve on your phone" spinner and then a success screen with an order number and an estimated boda delivery time
@@ -142,7 +142,7 @@ export interface CartItem {
 
 **Done when:** the full 8-step success journey works end to end on desktop and on a phone.
 
-## Phase 5: Polish, performance, deploy, demo (2 days)
+## Phase 5: Polish, performance, deploy, demo
 - [ ] Check the budget from RESEARCH §2: run Lighthouse with mobile throttling, and test on a real mid-range Android over 4G
 - [ ] Compress environment textures (`gltf-transform optimize --texture-compress webp`); load HDRI at 1K
 - [ ] Preload the next phone models with `useGLTF.preload`
