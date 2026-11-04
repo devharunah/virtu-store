@@ -74,7 +74,7 @@ export function ProductPanel() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a4a0c]">
-                {product.tier}
+                {product.brand} · {product.tier}
               </p>
               <h2 id="inspect-title" className="text-2xl font-bold tracking-tight">
                 {product.name}
@@ -154,7 +154,7 @@ export function ProductPanel() {
             <button
               type="button"
               onClick={addToBag}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 font-semibold text-white transition-colors hover:bg-neutral-700"
+              className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-neutral-900 px-5 text-[15px] font-semibold text-white transition-colors hover:bg-neutral-700"
             >
               {added === addedKey ? (
                 <>
