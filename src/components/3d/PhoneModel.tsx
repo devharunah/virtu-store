@@ -5,7 +5,7 @@ import type { ThreeElements } from "@react-three/fiber";
 import { useLayoutEffect, useMemo } from "react";
 import * as THREE from "three";
 
-type Props = ThreeElements["group"] & { url: string; colour?: string };
+type Props = ThreeElements["group"] & { url: string; colour?: string | undefined };
 
 /**
  * Loads a phone GLB (meshopt-compressed; drei decodes it) and recolours the
@@ -23,8 +23,8 @@ export function PhoneModel({ url, colour, ...groupProps }: Props) {
       const mats: THREE.Material[] = Array.isArray(obj.material) ? obj.material : [obj.material];
       const next = mats.map((m) => {
         if (m.name !== "Body" || !(m instanceof THREE.MeshStandardMaterial)) return m;
-        const mine = m.userData.virtuOwned ? m : m.clone();
-        mine.userData.virtuOwned = true;
+        const mine = m.userData["virtuOwned"] ? m : m.clone();
+        mine.userData["virtuOwned"] = true;
         mine.color.set(colour);
         return mine;
       });

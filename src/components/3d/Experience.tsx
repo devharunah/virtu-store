@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader } from "@/components/ui/Loader";
+import { ROOM } from "@/data/store-layout";
 /**
  * Phase 1: the lit, furnished showroom with static physics colliders and a free camera.
  * Phase 2 adds the ecctrl player inside <Physics>. See docs/BUILD-PLAN.md.
@@ -9,12 +11,11 @@ import { ContactShadows, Environment, PerformanceMonitor } from "@react-three/dr
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useState } from "react";
-import { Loader } from "@/components/ui/Loader";
-import { ROOM } from "@/data/store-layout";
 import { BASE_FOV, CameraRig } from "./CameraRig";
 import { StoreScene } from "./StoreScene";
 
-const debug = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debug");
+const debug =
+  typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debug");
 
 export default function Experience() {
   const [dpr, setDpr] = useState(1.5);
@@ -30,7 +31,11 @@ export default function Experience() {
           if (debug) Object.assign(window, { __virtu: state });
         }}
       >
-        <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} flipflops={3} />
+        <PerformanceMonitor
+          onDecline={() => setDpr(1)}
+          onIncline={() => setDpr(1.5)}
+          flipflops={3}
+        />
         <color attach="background" args={["#dfe6ea"]} />
         <fog attach="fog" args={["#dfe6ea", 14, 40]} />
 
@@ -44,7 +49,15 @@ export default function Experience() {
             <StoreScene />
           </Physics>
           {/* Rendered once after everything has loaded: soft shadows under fixtures for free */}
-          <ContactShadows position={[0, 0.003, 0]} scale={[ROOM.width, ROOM.depth]} resolution={1024} far={2.5} blur={2.2} opacity={0.55} frames={1} />
+          <ContactShadows
+            position={[0, 0.003, 0]}
+            scale={[ROOM.width, ROOM.depth]}
+            resolution={1024}
+            far={2.5}
+            blur={2.2}
+            opacity={0.55}
+            frames={1}
+          />
         </Suspense>
 
         <CameraRig />

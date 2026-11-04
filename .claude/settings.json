@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/session-start.js\""
+          }
+        ],
+        "description": "Load previous session context and detect the package manager"
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/pre-compact.js\""
+          }
+        ],
+        "description": "Save state before context compaction"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/session-end.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/evaluate-session.js\""
+          }
+        ],
+        "description": "Persist session state and extract reusable patterns"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/suggest-compact.js\""
+          }
+        ],
+        "description": "Suggest manual compaction at logical intervals"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"git push\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Hook] Pre-push checklist: pnpm verify');console.error('[Hook] Never push to main. Branch, then open a PR.')\""
+          }
+        ],
+        "description": "Pre-push reminder of the local checklist and branch policy"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/biome-format.js\""
+          }
+        ],
+        "description": "Format edited files with Biome, the formatter this repo actually uses"
+      },
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/check-console-log.js\""
+          }
+        ],
+        "description": "Warn about console.log left in edited source files"
+      },
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/log-pr-url.js\""
+          }
+        ],
+        "description": "Surface the PR URL and review command after gh pr create"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/hooks/check-console-log.js\" --diff"
+          }
+        ],
+        "description": "Check the working diff for console.log before handing back"
+      }
+    ]
+  }
+}

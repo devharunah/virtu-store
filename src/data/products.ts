@@ -56,7 +56,12 @@ export const products: Product[] = [
       { id: "128", label: "128 GB", priceDelta: 0 },
       { id: "256", label: "256 GB", priceDelta: 120_000 },
     ],
-    specs: { screen: '6.6" AMOLED 120 Hz', battery: "5,000 mAh", camera: "64 MP triple", ram: "8 GB" },
+    specs: {
+      screen: '6.6" AMOLED 120 Hz',
+      battery: "5,000 mAh",
+      camera: "64 MP triple",
+      ram: "8 GB",
+    },
     displaySlot: "table-2",
   },
   {
@@ -75,7 +80,12 @@ export const products: Product[] = [
       { id: "256", label: "256 GB", priceDelta: 0 },
       { id: "512", label: "512 GB", priceDelta: 250_000 },
     ],
-    specs: { screen: '6.7" AMOLED 120 Hz', battery: "5,200 mAh", camera: "108 MP triple", ram: "12 GB" },
+    specs: {
+      screen: '6.7" AMOLED 120 Hz',
+      battery: "5,200 mAh",
+      camera: "108 MP triple",
+      ram: "12 GB",
+    },
     displaySlot: "table-2",
   },
   {
@@ -95,7 +105,12 @@ export const products: Product[] = [
       { id: "512", label: "512 GB", priceDelta: 400_000 },
       { id: "1024", label: "1 TB", priceDelta: 900_000 },
     ],
-    specs: { screen: '6.8" LTPO AMOLED 120 Hz', battery: "5,000 mAh", camera: "200 MP + periscope", ram: "16 GB" },
+    specs: {
+      screen: '6.8" LTPO AMOLED 120 Hz',
+      battery: "5,000 mAh",
+      camera: "200 MP + periscope",
+      ram: "16 GB",
+    },
     displaySlot: "podium",
   },
 ];

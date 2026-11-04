@@ -1,10 +1,10 @@
 "use client";
 
+import { HALF_D, HALF_W, ROOM } from "@/data/store-layout";
 import { useTexture } from "@react-three/drei";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { useMemo } from "react";
 import * as THREE from "three";
-import { HALF_D, HALF_W, ROOM } from "@/data/store-layout";
 
 // Real-world size one texture repeat covers (from Poly Haven's asset info)
 const FLOOR_TILE_METRES = 1.5; // marble_01
@@ -36,8 +36,15 @@ function tiled(maps: PBRMaps, w: number, h: number, tileMetres = WALL_TILE_METRE
   return out;
 }
 
-function PBRMaterial({ maps, color = "#ffffff", roughness = 1, painted = false }: {
-  maps: PBRMaps; color?: string; roughness?: number;
+function PBRMaterial({
+  maps,
+  color = "#ffffff",
+  roughness = 1,
+  painted = false,
+}: {
+  maps: PBRMaps;
+  color?: string;
+  roughness?: number;
   /** painted: flat paint colour + plaster bump only (the photo colour map reads too dark indoors) */
   painted?: boolean;
 }) {
@@ -45,7 +52,7 @@ function PBRMaterial({ maps, color = "#ffffff", roughness = 1, painted = false }
     <meshStandardMaterial
       map={painted ? null : maps.map}
       normalMap={maps.normalMap}
-      normalScale={painted ? new THREE.Vector2(0.5, 0.5) : undefined}
+      {...(painted ? { normalScale: new THREE.Vector2(0.5, 0.5) } : {})}
       aoMap={maps.arm}
       aoMapIntensity={painted ? 0.4 : 1}
       roughnessMap={maps.arm}
@@ -56,8 +63,20 @@ function PBRMaterial({ maps, color = "#ffffff", roughness = 1, painted = false }
   );
 }
 
-function Wall({ w, h, position, rotationY = 0, maps, color = "#efe7da" }: {
-  w: number; h: number; position: [number, number, number]; rotationY?: number; maps: PBRMaps; color?: string;
+function Wall({
+  w,
+  h,
+  position,
+  rotationY = 0,
+  maps,
+  color = "#efe7da",
+}: {
+  w: number;
+  h: number;
+  position: [number, number, number];
+  rotationY?: number;
+  maps: PBRMaps;
+  color?: string;
 }) {
   const m = useMemo(() => tiled(maps, w, h), [maps, w, h]);
   return (
@@ -81,21 +100,45 @@ function ShopFront({ maps }: { maps: PBRMaps }) {
     <group>
       {[-1, 1].map((s) => (
         <group key={s}>
-          <Wall w={sideW} h={kerb} position={[s * sideX, kerb / 2, z]} rotationY={Math.PI} maps={maps} color="#2b3a55" />
+          <Wall
+            w={sideW}
+            h={kerb}
+            position={[s * sideX, kerb / 2, z]}
+            rotationY={Math.PI}
+            maps={maps}
+            color="#2b3a55"
+          />
           <mesh position={[s * sideX, kerb + glassH / 2, z]}>
             <planeGeometry args={[sideW, glassH]} />
-            <meshStandardMaterial color="#cfe3ea" transparent opacity={0.18} roughness={0.05} metalness={0.2} side={THREE.DoubleSide} depthWrite={false} />
+            <meshStandardMaterial
+              color="#cfe3ea"
+              transparent
+              opacity={0.18}
+              roughness={0.05}
+              metalness={0.2}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
           </mesh>
           {/* mullions */}
           {[0, 1].map((k) => (
-            <mesh key={k} position={[s * (door.width / 2 + 0.03 + k * (sideW - 0.06)), kerb + glassH / 2, z]}>
+            <mesh
+              key={k}
+              position={[s * (door.width / 2 + 0.03 + k * (sideW - 0.06)), kerb + glassH / 2, z]}
+            >
               <boxGeometry args={[0.06, glassH, 0.08]} />
               <meshStandardMaterial color="#1e1f22" roughness={0.4} metalness={0.6} />
             </mesh>
           ))}
         </group>
       ))}
-      <Wall w={ROOM.width} h={headerH} position={[0, door.height + headerH / 2, z]} rotationY={Math.PI} maps={maps} />
+      <Wall
+        w={ROOM.width}
+        h={headerH}
+        position={[0, door.height + headerH / 2, z]}
+        rotationY={Math.PI}
+        maps={maps}
+      />
       {/* door frame */}
       {[-1, 1].map((s) => (
         <mesh key={s} position={[s * (door.width / 2), door.height / 2, z]}>
@@ -134,7 +177,11 @@ function RoomColliders() {
       <CuboidCollider args={[WALL_T / 2, h, HALF_D]} position={[-HALF_W - WALL_T / 2, h, 0]} />
       <CuboidCollider args={[WALL_T / 2, h, HALF_D]} position={[HALF_W + WALL_T / 2, h, 0]} />
       {[-1, 1].map((s) => (
-        <CuboidCollider key={s} args={[sideW / 2, h, WALL_T / 2]} position={[s * (door.width / 2 + sideW / 2), h, HALF_D + WALL_T / 2]} />
+        <CuboidCollider
+          key={s}
+          args={[sideW / 2, h, WALL_T / 2]}
+          position={[s * (door.width / 2 + sideW / 2), h, HALF_D + WALL_T / 2]}
+        />
       ))}
       {/* porch stop, just outside the door */}
       <CuboidCollider args={[door.width / 2 + 0.5, h, 0.1]} position={[0, h, HALF_D + 1.1]} />
@@ -163,14 +210,31 @@ export function Room() {
       {/* ceiling */}
       <mesh rotation-x={Math.PI / 2} position={[0, h, 0]}>
         <planeGeometry args={[ROOM.width, ROOM.depth]} />
-        <meshStandardMaterial color="#ffffff" emissive="#f4efe6" emissiveIntensity={0.55} roughness={1} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#f4efe6"
+          emissiveIntensity={0.55}
+          roughness={1}
+        />
       </mesh>
       <CeilingLights />
 
       {/* back wall: deep navy accent behind the sign; side walls: warm plaster */}
       <Wall w={ROOM.width} h={h} position={[0, h / 2, -HALF_D]} maps={wall} color="#2f3f5c" />
-      <Wall w={ROOM.depth} h={h} position={[-HALF_W, h / 2, 0]} rotationY={Math.PI / 2} maps={wall} />
-      <Wall w={ROOM.depth} h={h} position={[HALF_W, h / 2, 0]} rotationY={-Math.PI / 2} maps={wall} />
+      <Wall
+        w={ROOM.depth}
+        h={h}
+        position={[-HALF_W, h / 2, 0]}
+        rotationY={Math.PI / 2}
+        maps={wall}
+      />
+      <Wall
+        w={ROOM.depth}
+        h={h}
+        position={[HALF_W, h / 2, 0]}
+        rotationY={-Math.PI / 2}
+        maps={wall}
+      />
       <ShopFront maps={wall} />
 
       <RoomColliders />
@@ -178,4 +242,8 @@ export function Room() {
   );
 }
 
-useTexture.preload(["floor", "wall"].flatMap((f) => ["color", "normal", "arm"].map((m) => `/textures/${f}/${m}.webp`)));
+useTexture.preload(
+  ["floor", "wall"].flatMap((f) =>
+    ["color", "normal", "arm"].map((m) => `/textures/${f}/${m}.webp`),
+  ),
+);

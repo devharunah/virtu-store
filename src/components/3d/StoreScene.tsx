@@ -1,12 +1,18 @@
 "use client";
 
+import { getProduct, products } from "@/data/products";
+import {
+  FIXTURES,
+  type Fixture,
+  SIGN,
+  WALL_BAY_INNER_WIDTH,
+  WALL_BAY_SHELVES,
+} from "@/data/store-layout";
 import { Instance, Instances, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { useMemo, useRef } from "react";
 import type * as THREE from "three";
-import { getProduct, products } from "@/data/products";
-import { FIXTURES, SIGN, WALL_BAY_INNER_WIDTH, WALL_BAY_SHELVES, type Fixture } from "@/data/store-layout";
 import { PhoneModel } from "./PhoneModel";
 import { Room } from "./Room";
 
@@ -38,7 +44,7 @@ function FixturePhones({ fixture }: { fixture: Fixture }) {
         const facing = fixture.spinPhones ? Math.PI * 0.85 : i % 2 ? Math.PI * 0.88 : 0.2;
         return (
           <group key={`${slot.productId}-${i}`} position={[x, fixture.surfaceY ?? 0, 0]}>
-            <SpinningGroup spin={fixture.spinPhones}>
+            <SpinningGroup spin={fixture.spinPhones ?? false}>
               <PhoneModel
                 url={product.modelUrl}
                 colour={product.colours[slot.colourIndex]?.hex}
@@ -77,9 +83,14 @@ function StockBoxes() {
       WALL_BAY_SHELVES.forEach((y, s) => {
         for (let i = 0; i < perShelf; i++) {
           const p = products[(i + s + b * 2) % products.length];
-          const colour = p.colours[(i + s) % p.colours.length].hex;
+          const colour = p?.colours[(i + s) % p.colours.length]?.hex;
+          if (!colour) continue;
           out.push({
-            pos: [bay.position[0] - WALL_BAY_INNER_WIDTH / 2 + step * (i + 0.5), y + 0.12, bay.position[2] + 0.16],
+            pos: [
+              bay.position[0] - WALL_BAY_INNER_WIDTH / 2 + step * (i + 0.5),
+              y + 0.12,
+              bay.position[2] + 0.16,
+            ],
             colour,
           });
         }
@@ -92,8 +103,8 @@ function StockBoxes() {
     <Instances limit={boxes.length}>
       <boxGeometry args={[0.13, 0.24, 0.07]} />
       <meshStandardMaterial roughness={0.45} />
-      {boxes.map((b, i) => (
-        <Instance key={i} position={b.pos} color={b.colour} />
+      {boxes.map((b) => (
+        <Instance key={b.pos.join(",")} position={b.pos} color={b.colour} />
       ))}
     </Instances>
   );
@@ -115,6 +126,10 @@ export function StoreScene() {
 }
 
 // Warm the cache for every model the showroom needs.
-[...new Set([...FIXTURES.map((f) => f.model), SIGN.model, ...products.map((p) => p.modelUrl)])].forEach((u) =>
-  useGLTF.preload(u),
-);
+for (const url of new Set([
+  ...FIXTURES.map((f) => f.model),
+  SIGN.model,
+  ...products.map((p) => p.modelUrl),
+])) {
+  useGLTF.preload(url);
+}
