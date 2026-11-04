@@ -1,7 +1,7 @@
 """
 VIRTU.STORE - procedural phone + fixture generator.
 
-Builds 5 brand-neutral smartphones and 2 store fixtures, exports each as GLB,
+Builds 5 real phones (iPhone 17 Pro Max, iPhone 17, Galaxy S25 Ultra, A56, A17) and 2 store fixtures, exports each as GLB,
 writes a manifest, and renders two lineup preview images.
 
 Run headless (no MCP needed):
@@ -35,34 +35,51 @@ os.makedirs(PREVIEW_DIR, exist_ok=True)
 MM = 0.001
 
 # --------------------------------------------------------------------------
-# Catalogue of fictional phones (names, prices and colours are placeholders)
 # --------------------------------------------------------------------------
+BRAND_DIR = os.path.join(HERE, "brand")
+
+# Real phones, approximated from public dimensions and design (mm). Coordinates on the back:
+# x is measured so that +x appears on the LEFT when you look at the back (cameras top-left).
+# Logos: simple-icons SVG paths (CC0 drawings); the trademarks belong to Apple and Samsung.
+APPLE_LOGO = dict(svg="apple.svg", finish="mirror")
+SAMSUNG_WORDMARK = dict(svg="samsung.svg", finish="print")
+IPHONE_BUTTONS = [(1, 0.66, 18), (1, 0.37, 16), (-1, 0.80, 7), (-1, 0.72, 11), (-1, 0.64, 11)]
+GALAXY_BUTTONS = [(1, 0.70, 26), (1, 0.58, 12)]
+
 PHONES = [
-    dict(id="nova-a1", name="Nova A1", tier="Budget",
-         w=74, h=163, t=9.2, r=9, inset=3.2,
-         island=dict(kind="none"),
-         lenses=[(22, 145, 6.5)], flash=(22, 133),
-         color="#2B3A55", metallic=0.0, roughness=0.55),
-    dict(id="nova-a5", name="Nova A5", tier="Entry",
-         w=76, h=165, t=8.6, r=10, inset=2.8,
-         island=dict(kind="pill", x=24, z=136, w=17, h=40),
-         lenses=[(24, 148, 6.0), (24, 132, 5.0)], flash=(9, 150),
-         color="#3E7C59", metallic=0.0, roughness=0.35),
-    dict(id="pulse-x", name="Pulse X", tier="Mid-range",
-         w=75.5, h=164, t=8.1, r=9.5, inset=2.2,
-         island=dict(kind="square", x=21, z=137, w=30, h=30, r=7),
-         lenses=[(14.5, 144, 5.4), (14.5, 130, 5.4), (28, 137, 4.0)], flash=(28, 147),
-         color="#C9B8E8", metallic=0.1, roughness=0.25),
-    dict(id="pulse-x-pro", name="Pulse X Pro", tier="Upper mid",
-         w=76, h=163, t=8.4, r=10, inset=1.9,
-         island=dict(kind="circle", x=0, z=133, d=40),
-         lenses=[(0, 143, 6.0), (-9, 128, 5.0), (9, 128, 5.0)], flash=(0, 124),
-         color="#D9822B", metallic=0.2, roughness=0.3),
-    dict(id="zenith-ultra", name="Zenith Ultra", tier="Flagship",
-         w=77, h=162, t=8.2, r=11, inset=1.5,
-         island=dict(kind="bar", z=141, h=22),
-         lenses=[(26, 141, 6.8), (10, 141, 6.8), (-6, 141, 6.8)], flash=(-21, 141),
-         color="#1C1C1E", metallic=0.6, roughness=0.22),
+    dict(id="galaxy-a17", name="Galaxy A17 5G", tier="Entry",
+         w=77.9, h=164.4, t=7.5, r=9, inset=3.0, selfie="hole",
+         islands=[dict(kind="rrect", x=25, z=130, w=17, h=44, r=8.5, depth=1.4, material="body")],
+         lenses=[(25, 144, 5.0), (25, 130, 5.0), (25, 116, 4.0)], flash=(12.5, 144),
+         logo=dict(SAMSUNG_WORDMARK, width=19, z=16), buttons=GALAXY_BUTTONS,
+         color="#1C1D20", metallic=0.0, roughness=0.45),
+    dict(id="galaxy-a56", name="Galaxy A56 5G", tier="Mid-range",
+         w=77.5, h=162.2, t=7.4, r=9, inset=2.2, selfie="hole",
+         islands=[dict(kind="rrect", x=24, z=129, w=20, h=48, r=10, depth=1.6, material="body")],
+         lenses=[(24, 145, 5.5), (24, 129, 5.5), (24, 113, 5.5)], flash=(9.5, 145),
+         logo=dict(SAMSUNG_WORDMARK, width=19, z=16), buttons=GALAXY_BUTTONS,
+         color="#3B3D40", metallic=0.1, roughness=0.35),
+    dict(id="iphone-17", name="iPhone 17", tier="Upper mid",
+         w=71.5, h=149.6, t=7.95, r=10.5, inset=1.7, selfie="island",
+         islands=[dict(kind="rrect", x=22, z=126, w=20, h=41, r=10, depth=1.5, material="body")],
+         lenses=[(22, 136.5, 6.6), (22, 115.5, 6.6)], flash=(7.5, 140),
+         logo=dict(APPLE_LOGO, width=15, z=72), buttons=IPHONE_BUTTONS,
+         color="#1E1F22", metallic=0.0, roughness=0.4),
+    dict(id="galaxy-s25-ultra", name="Galaxy S25 Ultra", tier="Flagship",
+         w=77.6, h=162.8, t=8.2, r=7, inset=1.4, selfie="hole",
+         islands=[],
+         lenses=[(27, 146, 6.3), (27, 131, 6.3), (27, 116, 6.3), (14, 146, 4.4), (14, 131, 4.4)],
+         flash=(14, 118),
+         logo=dict(SAMSUNG_WORDMARK, width=20, z=16), buttons=GALAXY_BUTTONS,
+         color="#A7B3C0", metallic=0.35, roughness=0.3),
+    dict(id="iphone-17-pro-max", name="iPhone 17 Pro Max", tier="Flagship",
+         w=78.0, h=163.4, t=8.75, r=11.5, inset=1.6, selfie="island",
+         # The full-width aluminium camera plateau, then lenses in a triangle, flash and LiDAR
+         islands=[dict(kind="rrect", x=0, z=136, w=77.0, h=46, r=11, depth=1.1, material="body")],
+         lenses=[(24, 146.5, 7.4), (24, 125.5, 7.4), (8.5, 136, 7.4), (-11, 125, 3.0)],
+         flash=(-11, 146),
+         logo=dict(APPLE_LOGO, width=16, z=74), buttons=IPHONE_BUTTONS,
+         color="#E8732C", metallic=0.55, roughness=0.32),
 ]
 
 
@@ -210,6 +227,58 @@ def tri_count(ob):
 # --------------------------------------------------------------------------
 # Builders
 # --------------------------------------------------------------------------
+def build_logo(spec, back):
+    """Import a brand SVG, turn it into a flat mesh and seat it on the phone's back.
+
+    The back faces +Y, so someone looking at it sees +X on their left: mirror X so the mark reads
+    correctly. Its own "Logo" material keeps it out of the runtime Body recolour.
+    """
+    finish = spec.get("finish", "print")
+    if finish == "mirror":
+        mat = material("Logo", "#D4D5D8", 1.0, 0.12)
+    else:
+        mat = material("Logo", "#C9CBCE", 0.2, 0.45)
+
+    before = set(bpy.data.objects)
+    bpy.ops.import_curve.svg(filepath=os.path.join(BRAND_DIR, spec["svg"]))
+    curves = [o for o in bpy.data.objects if o not in before and o.type == "CURVE"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for c in curves:
+        c.data.dimensions = "2D"
+        c.data.fill_mode = "BOTH"
+        c.data.resolution_u = 6
+        c.select_set(True)
+    bpy.context.view_layer.objects.active = curves[0]
+    if len(curves) > 1:
+        bpy.ops.object.join()
+    bpy.ops.object.convert(target="MESH")
+    logo = bpy.context.active_object
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    logo.data.materials.clear()
+    logo.data.materials.append(mat)
+
+    xs = [v.co.x for v in logo.data.vertices]
+    ys = [v.co.y for v in logo.data.vertices]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    scale = spec["width"] * MM / (max(xs) - min(xs))
+    lift = back + 0.08 * MM
+    for v in logo.data.vertices:
+        x, y = v.co.x, v.co.y
+        v.co = (-(x - cx) * scale, lift, (y - cy) * scale + spec["z"] * MM)
+
+    # Flat logo: make every face point out of the back (+Y)
+    bm = bmesh.new()
+    bm.from_mesh(logo.data)
+    bm.normal_update()
+    for f in bm.faces:
+        if f.normal.y < 0:
+            f.normal_flip()
+    bm.to_mesh(logo.data)
+    bm.free()
+    logo.name = "logo"
+    return logo
+
+
 def build_phone(s):
     w, h, t, r = s["w"] * MM, s["h"] * MM, s["t"] * MM, s["r"] * MM
     front, back = -t / 2, t / 2
@@ -236,31 +305,28 @@ def build_phone(s):
     sw, sh = w - 2 * ins, h - 2 * ins
     parts.append(flat("screen", rrect_pts(sw, sh, max(r - ins, 1 * MM), 0, h / 2), front - 2 * e, m_screen,
                       flip=True, uv_box=(-sw / 2, h / 2 - sh / 2, sw, sh)))
-    # punch-hole selfie camera
-    parts.append(flat("selfie", rrect_pts(3.4 * MM, 3.4 * MM, 1.7 * MM, 0, h - ins - 6 * MM, seg=6),
-                      front - 3 * e, m_glass, flip=True))
+    # Front camera: a punch-hole, or Apple's Dynamic Island pill
+    if s.get("selfie") == "island":
+        parts.append(flat("selfie", rrect_pts(19 * MM, 5.6 * MM, 2.8 * MM, 0, h - ins - 6.5 * MM, seg=8),
+                          front - 3 * e, m_bezel, flip=True))
+    else:
+        parts.append(flat("selfie", rrect_pts(3.4 * MM, 3.4 * MM, 1.7 * MM, 0, h - ins - 6 * MM, seg=6),
+                          front - 3 * e, m_glass, flip=True))
 
-    # Camera island on the back
-    isl = s["island"]
+    # Raised camera islands on the back (body-coloured or glass); lenses sit on the highest one
     lens_base = back
-    if isl["kind"] in ("pill", "square"):
-        iw, ih = isl["w"] * MM, isl["h"] * MM
-        ir = isl.get("r", isl["w"] / 2) * MM
-        ob = prism("island", rrect_pts(iw, ih, ir, isl["x"] * MM, isl["z"] * MM), back, back + 1.4 * MM, m_body)
-        bevel(ob, 0.5 * MM)
+    for i, isl in enumerate(s.get("islands", [])):
+        depth = isl.get("depth", 1.4) * MM
+        mat = m_glass if isl.get("material") == "glass" else m_body
+        if isl["kind"] == "circle":
+            ob = cylinder_y(f"island{i}", isl["d"] * MM / 2, depth, isl["x"] * MM, back, isl["z"] * MM, mat, verts=64)
+        else:
+            iw, ih = isl["w"] * MM, isl["h"] * MM
+            ir = isl.get("r", min(isl["w"], isl["h"]) / 2) * MM
+            ob = prism(f"island{i}", rrect_pts(iw, ih, ir, isl["x"] * MM, isl["z"] * MM), back, back + depth, mat)
+        bevel(ob, min(0.5 * MM, depth * 0.4))
         parts.append(ob)
-        lens_base = back + 1.4 * MM
-    elif isl["kind"] == "circle":
-        ob = cylinder_y("island", isl["d"] * MM / 2, 1.6 * MM, isl["x"] * MM, back, isl["z"] * MM, m_glass, verts=64)
-        bevel(ob, 0.5 * MM)
-        parts.append(ob)
-        lens_base = back + 1.6 * MM
-    elif isl["kind"] == "bar":
-        ih = isl["h"] * MM
-        ob = prism("island", rrect_pts(w - 2.5 * MM, ih, ih / 2, 0, isl["z"] * MM), back, back + 1.8 * MM, m_glass)
-        bevel(ob, 0.6 * MM)
-        parts.append(ob)
-        lens_base = back + 1.8 * MM
+        lens_base = max(lens_base, back + depth)
 
     for i, (lx, lz, lr) in enumerate(s["lenses"]):
         x, z, rad = lx * MM, lz * MM, lr * MM
@@ -269,11 +335,14 @@ def build_phone(s):
     fx, fz = s["flash"]
     parts.append(cylinder_y("flash", 1.9 * MM, 0.4 * MM, fx * MM, lens_base, fz * MM, m_flash, verts=24))
 
-    # Side buttons (+X edge): power + volume rocker
-    for nm, bz, bl in (("power", 0.62, 14), ("volume", 0.76, 26)):
-        bl_m = bl * MM
-        ob = prism(nm, rrect_pts(1.6 * MM, bl_m, 0.7 * MM, w / 2 + 0.3 * MM, h * bz), -1.3 * MM, 1.3 * MM, m_body)
+    # Side buttons: (side, height as a fraction of the phone, length in mm); +1 = right edge seen from the front
+    for i, (side, bz, bl) in enumerate(s.get("buttons", [(1, 0.62, 14), (1, 0.76, 26)])):
+        ob = prism(f"button{i}", rrect_pts(1.6 * MM, bl * MM, 0.7 * MM, side * (w / 2 + 0.3 * MM), h * bz),
+                   -1.3 * MM, 1.3 * MM, m_body)
         parts.append(ob)
+
+    if s.get("logo"):
+        parts.append(build_logo(s["logo"], back))
 
     for p in parts:
         shade_smooth(p)

@@ -1,54 +1,54 @@
 {
   "phones": [
     {
-      "id": "nova-a1",
-      "name": "Nova A1",
-      "tier": "Budget",
-      "file": "/models/phones/nova-a1.glb",
-      "dimensions_mm": [74, 163, 9.2],
-      "triangles": 1350,
-      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
-      "default_color": "#2B3A55"
-    },
-    {
-      "id": "nova-a5",
-      "name": "Nova A5",
+      "id": "galaxy-a17",
+      "name": "Galaxy A17 5G",
       "tier": "Entry",
-      "file": "/models/phones/nova-a5.glb",
-      "dimensions_mm": [76, 165, 8.6],
-      "triangles": 2362,
-      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
-      "default_color": "#3E7C59"
+      "file": "/models/phones/galaxy-a17.glb",
+      "dimensions_mm": [77.9, 164.4, 7.5],
+      "triangles": 3092,
+      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash", "Logo"],
+      "default_color": "#1C1D20"
     },
     {
-      "id": "pulse-x",
-      "name": "Pulse X",
+      "id": "galaxy-a56",
+      "name": "Galaxy A56 5G",
       "tier": "Mid-range",
-      "file": "/models/phones/pulse-x.glb",
-      "dimensions_mm": [75.5, 164, 8.1],
-      "triangles": 2546,
-      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
-      "default_color": "#C9B8E8"
+      "file": "/models/phones/galaxy-a56.glb",
+      "dimensions_mm": [77.5, 162.2, 7.4],
+      "triangles": 3092,
+      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash", "Logo"],
+      "default_color": "#3B3D40"
     },
     {
-      "id": "pulse-x-pro",
-      "name": "Pulse X Pro",
+      "id": "iphone-17",
+      "name": "iPhone 17",
       "tier": "Upper mid",
-      "file": "/models/phones/pulse-x-pro.glb",
-      "dimensions_mm": [76, 163, 8.4],
-      "triangles": 2994,
-      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
-      "default_color": "#D9822B"
+      "file": "/models/phones/iphone-17.glb",
+      "dimensions_mm": [71.5, 149.6, 7.95],
+      "triangles": 2894,
+      "materials": ["Body", "Bezel", "Screen", "LensRing", "Glass", "Flash", "Logo"],
+      "default_color": "#1E1F22"
     },
     {
-      "id": "zenith-ultra",
-      "name": "Zenith Ultra",
+      "id": "galaxy-s25-ultra",
+      "name": "Galaxy S25 Ultra",
       "tier": "Flagship",
-      "file": "/models/phones/zenith-ultra.glb",
-      "dimensions_mm": [77, 162, 8.2],
-      "triangles": 2674,
-      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
-      "default_color": "#1C1C1E"
+      "file": "/models/phones/galaxy-s25-ultra.glb",
+      "dimensions_mm": [77.6, 162.8, 8.2],
+      "triangles": 3016,
+      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash", "Logo"],
+      "default_color": "#A7B3C0"
+    },
+    {
+      "id": "iphone-17-pro-max",
+      "name": "iPhone 17 Pro Max",
+      "tier": "Flagship",
+      "file": "/models/phones/iphone-17-pro-max.glb",
+      "dimensions_mm": [78.0, 163.4, 8.75],
+      "triangles": 3390,
+      "materials": ["Body", "Bezel", "Screen", "LensRing", "Glass", "Flash", "Logo"],
+      "default_color": "#E8732C"
     }
   ],
   "fixtures": [
