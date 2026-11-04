@@ -1,0 +1,129 @@
+{
+  "phones": [
+    {
+      "id": "nova-a1",
+      "name": "Nova A1",
+      "tier": "Budget",
+      "file": "/models/phones/nova-a1.glb",
+      "dimensions_mm": [
+        74,
+        163,
+        9.2
+      ],
+      "triangles": 1350,
+      "materials": [
+        "Body",
+        "Bezel",
+        "Screen",
+        "Glass",
+        "LensRing",
+        "Flash"
+      ],
+      "default_color": "#2B3A55"
+    },
+    {
+      "id": "nova-a5",
+      "name": "Nova A5",
+      "tier": "Entry",
+      "file": "/models/phones/nova-a5.glb",
+      "dimensions_mm": [
+        76,
+        165,
+        8.6
+      ],
+      "triangles": 2362,
+      "materials": [
+        "Body",
+        "Bezel",
+        "Screen",
+        "Glass",
+        "LensRing",
+        "Flash"
+      ],
+      "default_color": "#3E7C59"
+    },
+    {
+      "id": "pulse-x",
+      "name": "Pulse X",
+      "tier": "Mid-range",
+      "file": "/models/phones/pulse-x.glb",
+      "dimensions_mm": [
+        75.5,
+        164,
+        8.1
+      ],
+      "triangles": 2546,
+      "materials": [
+        "Body",
+        "Bezel",
+        "Screen",
+        "Glass",
+        "LensRing",
+        "Flash"
+      ],
+      "default_color": "#C9B8E8"
+    },
+    {
+      "id": "pulse-x-pro",
+      "name": "Pulse X Pro",
+      "tier": "Upper mid",
+      "file": "/models/phones/pulse-x-pro.glb",
+      "dimensions_mm": [
+        76,
+        163,
+        8.4
+      ],
+      "triangles": 2994,
+      "materials": [
+        "Body",
+        "Bezel",
+        "Screen",
+        "Glass",
+        "LensRing",
+        "Flash"
+      ],
+      "default_color": "#D9822B"
+    },
+    {
+      "id": "zenith-ultra",
+      "name": "Zenith Ultra",
+      "tier": "Flagship",
+      "file": "/models/phones/zenith-ultra.glb",
+      "dimensions_mm": [
+        77,
+        162,
+        8.2
+      ],
+      "triangles": 2674,
+      "materials": [
+        "Body",
+        "Bezel",
+        "Screen",
+        "Glass",
+        "LensRing",
+        "Flash"
+      ],
+      "default_color": "#1C1C1E"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "podium",
+      "file": "/models/fixtures/podium.glb",
+      "triangles": 1272,
+      "materials": [
+        "Base",
+        "Accent"
+      ]
+    },
+    {
+      "id": "display_table",
+      "file": "/models/fixtures/display_table.glb",
+      "triangles": 760,
+      "materials": [
+        "Wood",
+        "Base"
+      ]
+    }
+  ]
+}

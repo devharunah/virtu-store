@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIRTU.STORE Architecture</title>
+<meta name="description" content="How the VIRTU.STORE 3D phone showroom works and how we will build it with Next.js, React Three Fiber, Rapier and Blender.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --surface-2:#efece5; --ink:#17181b; --ink-2:#4a4d55; --ink-3:#7a7d85;
+  --line:#dcd8cf; --accent:#d9822b; --accent-ink:#8a4a0c; --accent-soft:#fbe9d5;
+  --blue:#2c6e8f; --blue-soft:#dcebf2; --green:#3e7c59; --green-soft:#dcefe3; --violet:#6b58a8; --violet-soft:#e8e2f5;
+  --code-bg:#1d1f24; --code-ink:#e8e6e1; --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121316; --surface:#1b1d21; --surface-2:#23262b; --ink:#eceae5; --ink-2:#b3b5bb; --ink-3:#868991;
+    --line:#2f3238; --accent:#f0a050; --accent-ink:#ffc58a; --accent-soft:#3a2a19;
+    --blue:#6fb3d6; --blue-soft:#18303c; --green:#7cc79b; --green-soft:#1a3326; --violet:#ad9ce6; --violet-soft:#2a2440;
+    --code-bg:#0d0e10; --code-ink:#e8e6e1;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121316; --surface:#1b1d21; --surface-2:#23262b; --ink:#eceae5; --ink-2:#b3b5bb; --ink-3:#868991;
+  --line:#2f3238; --accent:#f0a050; --accent-ink:#ffc58a; --accent-soft:#3a2a19;
+  --blue:#6fb3d6; --blue-soft:#18303c; --green:#7cc79b; --green-soft:#1a3326; --violet:#ad9ce6; --violet-soft:#2a2440;
+  --code-bg:#0d0e10; --code-ink:#e8e6e1;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86em}
+:not(pre)>code{background:var(--surface-2);padding:.1em .4em;border-radius:6px}
+pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:12px;overflow-x:auto;line-height:1.55;margin:14px 0}
+pre .c{color:#8b8f99} pre .k{color:#f0a050} pre .s{color:#9fd3a8}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.hero{padding:56px 0 28px}
+.eyebrow{font:600 12px/1 Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink)}
+h1{font-size:clamp(32px,6vw,54px);line-height:1.05;margin:12px 0 14px;letter-spacing:-.02em}
+h2{font-size:clamp(24px,3.6vw,32px);letter-spacing:-.01em;margin:0 0 10px}
+h3{font-size:18px;margin:22px 0 6px}
+.lede{font-size:clamp(17px,2.2vw,20px);color:var(--ink-2);max-width:720px}
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.pill{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--ink-2)}
+.hero-img{margin:28px 0 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.hero-img img{display:block;width:100%;height:auto}
+.hero-img figcaption{font-size:13px;color:var(--ink-3);padding:10px 14px}
+nav.toc{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.toc a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:14px;padding:6px 10px;border-radius:8px}
+nav.toc a:hover{background:var(--surface-2);color:var(--ink)}
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+section>.wrap>p{max-width:760px;color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card h4{margin:0 0 6px;font-size:15px}
+.card p{margin:0;color:var(--ink-2);font-size:14.5px}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-bottom:8px}
+.t-a{background:var(--accent-soft);color:var(--accent-ink)} .t-b{background:var(--blue-soft);color:var(--blue)}
+.t-g{background:var(--green-soft);color:var(--green)} .t-v{background:var(--violet-soft);color:var(--violet)}
+ol.journey{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));counter-reset:j}
+ol.journey li{counter-increment:j;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 14px 52px;position:relative;font-size:14.5px}
+ol.journey li::before{content:counter(j);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:22px 0;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:640px;height:auto}
+.diagram svg text{font-family:Inter,sans-serif;fill:var(--ink)}
+.diagram .muted{fill:var(--ink-3)}
+.diagram .box{fill:var(--surface-2);stroke:var(--line)}
+.diagram .bx-a{fill:var(--accent-soft);stroke:var(--accent)}
+.diagram .bx-b{fill:var(--blue-soft);stroke:var(--blue)}
+.diagram .bx-g{fill:var(--green-soft);stroke:var(--green)}
+.diagram .bx-v{fill:var(--violet-soft);stroke:var(--violet)}
+.diagram .ln{stroke:var(--ink-3);stroke-width:1.5;fill:none}
+.diagram .dash{stroke-dasharray:5 5}
+.diagram .ah{fill:var(--ink-3)}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:14px 0;background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:13px;color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+.tbl{overflow-x:auto}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:18px 0;color:var(--ink);font-size:15px}
+.phase{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.phase:first-of-type{border-top:0}
+.phase .n{font:700 28px/1 Inter;color:var(--accent)}
+.phase h4{margin:2px 0 4px;font-size:16px}
+.phase p{margin:0;color:var(--ink-2);font-size:14.5px}
+footer{padding:36px 0 60px;color:var(--ink-3);font-size:14px}
+.theme-btn{position:fixed;right:14px;bottom:14px;z-index:9;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 13px Inter;cursor:pointer}
+@media (max-width:600px){ section{padding:38px 0} .phase{grid-template-columns:44px 1fr} .phase .n{font-size:22px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Architecture explainer · v1 · Nov 2026</div>
+    <h1>VIRTU.STORE<br>3D phone showroom</h1>
+    <p class="lede">Visitors walk a character through a virtual Kampala phone shop, pick up any phone to spin and zoom it, choose storage and colour, and check out. This page explains how the product works and how we build it, from Blender to the browser.</p>
+    <div class="pill-row">
+      <span class="pill">Next.js 16 · React 19</span><span class="pill">Three.js 0.187</span><span class="pill">React Three Fiber 9</span>
+      <span class="pill">Drei 10</span><span class="pill">Rapier 2 + ecctrl 2</span><span class="pill">Zustand 5</span><span class="pill">Blender 5.2</span><span class="pill">Vercel</span>
+    </div>
+    <figure class="hero-img">
+      <img src="img/lineup-back.png" alt="Five brand-neutral smartphones rendered in Blender, seen from the back: blue, green, lilac, orange and black, each with a different camera island design.">
+      <figcaption>The first 5 products, generated procedurally by <code>blender/phones.py</code>. They are brand-neutral, about 20 KB each after compression.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#product">Product</a><a href="#arch">Architecture</a><a href="#three">Three.js in Next</a><a href="#install">Install</a>
+  <a href="#player">Character</a><a href="#interact">Interaction</a><a href="#shop">Cart & checkout</a><a href="#assets">Assets</a>
+  <a href="#perf">Performance</a><a href="#tree">Structure</a><a href="#roadmap">Roadmap</a>
+</div></nav>
+
+<!-- 1 PRODUCT -->
+<section id="product"><div class="wrap">
+  <div class="eyebrow">01 · The product</div>
+  <h2>A shop you walk into, not a list you scroll</h2>
+  <p>The original brief (VIRTU.pdf) used sneakers. We start with <strong>smartphones</strong> because they are the best-selling consumer product in Uganda, and because their simple hard-surface shapes let us build our own licence-free 3D models in minutes. Sneakers come later as a second aisle on the same code.</p>
+  <ol class="journey">
+    <li>Open the site on phone or desktop</li>
+    <li>Enter the 3D showroom</li>
+    <li>Walk around with WASD or the joystick</li>
+    <li>Approach a phone and see a prompt</li>
+    <li>Inspect it in 3D: rotate 360° and zoom</li>
+    <li>Pick storage (64 GB → 1 TB) and colour</li>
+    <li>Add to cart</li>
+    <li>Simulated MoMo / Airtel Money checkout + boda delivery</li>
+  </ol>
+  <div class="tbl"><table>
+    <tr><th>PDF (sneakers)</th><th>This build (phones)</th></tr>
+    <tr><td>Shoe size</td><td>Storage tier; each one changes the price</td></tr>
+    <tr><td>Colour</td><td>Colourway; we recolour the GLB material named <code>Body</code> at runtime, so no extra downloads</td></tr>
+    <tr><td>Shelves</td><td>Display tables, a hero podium, wall bays, counter</td></tr>
+    <tr><td>Simulated checkout</td><td>Mock MTN MoMo / Airtel Money / cash-on-delivery + Kampala delivery form</td></tr>
+    <tr><td>Mobile joystick "later"</td><td>Built in Phase 2; most of the audience is on Android phones</td></tr>
+  </table></div>
+</div></section>
+
+<!-- 2 ARCHITECTURE -->
+<section id="arch"><div class="wrap">
+  <div class="eyebrow">02 · System architecture</div>
+  <h2>Three layers, one shared state</h2>
+  <p>Next.js serves the page. The 3D world runs in a client-only React Three Fiber <code>&lt;Canvas&gt;</code>. Normal HTML/Tailwind UI floats on top. Both read and write one small Zustand store, so the 3D scene and the UI never talk to each other directly.</p>
+
+  <div class="diagram" role="img" aria-label="Architecture diagram: browser runs Next.js page containing a 3D canvas layer and an HTML UI overlay, both connected to a Zustand store; static GLB assets come from Vercel CDN; Supabase is a future backend.">
+  <svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+    <!-- browser frame -->
+    <rect x="10" y="10" width="640" height="450" rx="16" class="box"/>
+    <text x="30" y="40" font-size="14" font-weight="700">Browser · Next.js App Router page <tspan class="muted" font-weight="400">/store</tspan></text>
+
+    <!-- canvas layer -->
+    <rect x="30" y="60" width="380" height="250" rx="12" class="bx-b"/>
+    <text x="48" y="86" font-size="14" font-weight="700">3D layer: R3F &lt;Canvas&gt;</text>
+    <text x="48" y="104" font-size="12" class="muted">"use client" · dynamic import, ssr:false</text>
+    <rect x="48" y="118" width="344" height="58" rx="8" class="box"/>
+    <text x="62" y="140" font-size="13" font-weight="600">&lt;Physics&gt; (Rapier, WASM)</text>
+    <text x="62" y="160" font-size="12" class="muted">Player capsule · wall/table colliders · sensors</text>
+    <rect x="48" y="186" width="166" height="108" rx="8" class="box"/>
+    <text x="60" y="208" font-size="13" font-weight="600">StoreScene</text>
+    <text x="60" y="228" font-size="12" class="muted">room, fixtures</text>
+    <text x="60" y="246" font-size="12" class="muted">HDRI + lights</text>
+    <text x="60" y="264" font-size="12" class="muted">PhoneDisplay ×5</text>
+    <text x="60" y="282" font-size="12" class="muted">ContactShadows</text>
+    <rect x="226" y="186" width="166" height="108" rx="8" class="box"/>
+    <text x="238" y="208" font-size="13" font-weight="600">Player (ecctrl)</text>
+    <text x="238" y="228" font-size="12" class="muted">KeyboardControls</text>
+    <text x="238" y="246" font-size="12" class="muted">Joystick (mobile)</text>
+    <text x="238" y="264" font-size="12" class="muted">idle / walk / run</text>
+    <text x="238" y="282" font-size="12" class="muted">follow camera</text>
+
+    <!-- UI overlay -->
+    <rect x="30" y="330" width="380" height="112" rx="12" class="bx-v"/>
+    <text x="48" y="356" font-size="14" font-weight="700">HTML UI overlay (Tailwind)</text>
+    <text x="48" y="378" font-size="12" class="muted">Interact prompt · ProductPanel · InspectViewer</text>
+    <text x="48" y="396" font-size="12" class="muted">(2nd small Canvas + OrbitControls) · CartDrawer</text>
+    <text x="48" y="414" font-size="12" class="muted">Loader (useProgress) · HUD · Joystick</text>
+    <text x="48" y="432" font-size="12" class="muted">/checkout page (mock MoMo / Airtel)</text>
+
+    <!-- state -->
+    <rect x="440" y="150" width="190" height="180" rx="12" class="bx-a"/>
+    <text x="458" y="176" font-size="14" font-weight="700">Zustand stores</text>
+    <text x="458" y="200" font-size="12">ui-store</text>
+    <text x="458" y="218" font-size="12" class="muted">nearProductId</text>
+    <text x="458" y="236" font-size="12" class="muted">inspecting, colour, variant</text>
+    <text x="458" y="262" font-size="12">cart-store</text>
+    <text x="458" y="280" font-size="12" class="muted">items, totals</text>
+    <text x="458" y="298" font-size="12" class="muted">persist → localStorage</text>
+
+    <path d="M410 230 H438" class="ln" marker-end="url(#arr)" marker-start="url(#arr)"/>
+    <path d="M410 385 H535 V332" class="ln" marker-end="url(#arr)"/>
+    <path d="M535 150 V120" class="ln dash"/>
+
+    <!-- static data -->
+    <rect x="440" y="40" width="190" height="80" rx="12" class="box"/>
+    <text x="458" y="66" font-size="13" font-weight="600">data/products.ts</text>
+    <text x="458" y="86" font-size="12" class="muted">catalogue, prices (UGX)</text>
+    <text x="458" y="104" font-size="12" class="muted">colours, storage tiers</text>
+
+    <!-- right side -->
+    <rect x="690" y="40" width="260" height="150" rx="12" class="bx-g"/>
+    <text x="708" y="66" font-size="14" font-weight="700">Vercel (hosting + CDN)</text>
+    <text x="708" y="90" font-size="12" class="muted">/models/phones/*.glb (meshopt)</text>
+    <text x="708" y="108" font-size="12" class="muted">/models/fixtures, characters</text>
+    <text x="708" y="126" font-size="12" class="muted">/hdri 1K · /textures WebP</text>
+    <text x="708" y="144" font-size="12" class="muted">/screens wallpaper art</text>
+    <text x="708" y="170" font-size="12" class="muted">long cache headers</text>
+    <path d="M688 135 H412" class="ln" marker-end="url(#arr)"/>
+    <text x="638" y="130" font-size="11" class="muted">useGLTF</text>
+
+    <rect x="690" y="220" width="260" height="110" rx="12" class="box"/>
+    <text x="708" y="246" font-size="14" font-weight="700">Blender 5.2 pipeline</text>
+    <text x="708" y="268" font-size="12" class="muted">blender/phones.py → GLB</text>
+    <text x="708" y="286" font-size="12" class="muted">gltf-transform optimize</text>
+    <text x="708" y="304" font-size="12" class="muted">Blender MCP ↔ Claude Code</text>
+    <path d="M820 220 V192" class="ln" marker-end="url(#arr)"/>
+
+    <rect x="690" y="360" width="260" height="90" rx="12" class="box" stroke-dasharray="5 5"/>
+    <text x="708" y="386" font-size="14" font-weight="700">Supabase <tspan class="muted" font-weight="400">(v2, later)</tspan></text>
+    <text x="708" y="408" font-size="12" class="muted">products · orders · deliveries</text>
+    <text x="708" y="426" font-size="12" class="muted">auth · admin price edits</text>
+    <path d="M688 405 H632 V332" class="ln dash" marker-end="url(#arr)"/>
+  </svg>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><span class="tag t-b">3D layer</span><h4>Owns the world</h4><p>Rendering, physics, character movement, proximity sensors. It writes only "what is near me" and "what am I inspecting" to the store.</p></div>
+    <div class="card"><span class="tag t-v">UI layer</span><h4>Owns the shopping</h4><p>Panels, cart, checkout are plain React + Tailwind. They are accessible, fast, and easy to restyle without touching 3D code.</p></div>
+    <div class="card"><span class="tag t-a">State</span><h4>One source of truth</h4><p>Zustand works inside and outside the Canvas without re-rendering the whole scene. The cart persists across reloads.</p></div>
+  </div>
+</div></section>
+
+<!-- 3 THREE IN NEXT -->
+<section id="three"><div class="wrap">
+  <div class="eyebrow">03 · Integrating Three.js</div>
+  <h2>How Three.js lives inside Next.js</h2>
+  <p>We never call <code>new THREE.WebGLRenderer()</code> ourselves. React Three Fiber (R3F) is a React renderer for Three.js: every <code>&lt;mesh&gt;</code> in JSX becomes a <code>THREE.Mesh</code>, and the render loop, resizing and pointer events are handled for us. Drei adds ready-made helpers, and Rapier adds physics compiled to WebAssembly.</p>
+
+  <div class="grid g2">
+    <div class="card"><h4>1 · Keep WebGL off the server</h4><p>WebGL only exists in the browser. The 3D entry component starts with <code>"use client"</code> and is loaded with <code>next/dynamic</code> and <code>ssr:false</code> from a small client wrapper (Next 16 rejects <code>ssr:false</code> in Server Components), so Next.js server-renders the landing page and the loader, but never the Canvas.</p></div>
+    <div class="card"><h4>2 · Load models with <code>useGLTF</code></h4><p>Drei's <code>useGLTF</code> fetches and caches a GLB and decodes meshopt/Draco compression automatically. Components suspend while loading, and <code>useProgress</code> drives the loading bar.</p></div>
+    <div class="card"><h4>3 · Recolour without new files</h4><p>Each phone GLB has a material literally named <code>Body</code>. We clone the scene per display and set <code>material.color</code> from the selected colourway. Five colours cost zero extra downloads.</p></div>
+    <div class="card"><h4>4 · Why GLB</h4><p>One binary file holds geometry, materials, textures and animations. It is the web-native 3D format, streams well from a CDN, and Blender exports it directly.</p></div>
+  </div>
+
+<pre><span class="c">// src/components/3d/ExperienceLoader.tsx: ssr:false must live in a CLIENT component (Next 16)</span>
+<span class="s">"use client"</span>;
+<span class="k">import</span> dynamic <span class="k">from</span> <span class="s">"next/dynamic"</span>;
+<span class="k">const</span> Experience = dynamic(() =&gt; <span class="k">import</span>(<span class="s">"./Experience"</span>), { ssr: <span class="k">false</span> });
+<span class="k">export default function</span> ExperienceLoader() { <span class="k">return</span> &lt;Experience /&gt;; }
+
+<span class="c">// src/app/store/page.tsx: server component, tiny</span>
+<span class="k">export default function</span> StorePage() { <span class="k">return</span> &lt;ExperienceLoader /&gt;; }
+
+<span class="c">// src/components/3d/Experience.tsx</span>
+<span class="s">"use client"</span>;
+<span class="k">export default function</span> Experience() {
+  <span class="k">const</span> [dpr, setDpr] = useState(1.5);
+  <span class="k">return</span> (
+    &lt;Canvas dpr={dpr} camera={{ fov: 50 }}&gt;
+      &lt;PerformanceMonitor onDecline={() =&gt; setDpr(1)} /&gt;
+      &lt;Environment files=<span class="s">"/hdri/showroom_1k.hdr"</span> /&gt;
+      &lt;Suspense fallback={<span class="k">null</span>}&gt;
+        &lt;Physics&gt;
+          &lt;StoreScene /&gt;
+          &lt;Player /&gt;
+        &lt;/Physics&gt;
+      &lt;/Suspense&gt;
+    &lt;/Canvas&gt;
+  );
+}
+
+<span class="c">// src/components/3d/PhoneModel.tsx: recolour the "Body" material</span>
+<span class="k">export function</span> PhoneModel({ url, colour }: { url: string; colour: string }) {
+  <span class="k">const</span> { scene } = useGLTF(url);
+  <span class="k">const</span> clone = useMemo(() =&gt; scene.clone(<span class="k">true</span>), [scene]);
+  useLayoutEffect(() =&gt; {
+    clone.traverse((o) =&gt; {
+      <span class="k">if</span> (o <span class="k">instanceof</span> THREE.Mesh) {
+        <span class="k">const</span> mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach((m, i) =&gt; {
+          <span class="k">if</span> (m.name === <span class="s">"Body"</span>) {
+            <span class="k">const</span> mine = m.clone(); mine.color.set(colour);
+            Array.isArray(o.material) ? (o.material[i] = mine) : (o.material = mine);
+          }
+        });
+      }
+    });
+  }, [clone, colour]);
+  <span class="k">return</span> &lt;primitive object={clone} /&gt;;
+}</pre>
+</div></section>
+
+<!-- 4 INSTALL -->
+<section id="install"><div class="wrap">
+  <div class="eyebrow">04 · Installing the stack</div>
+  <h2>Setup in four commands</h2>
+  <p>Versions were checked on npm on 4 Nov 2026. All peer dependencies line up on React 19, so no pinning is needed. ecctrl 2 also expects <code>leva</code> (a debug panel), so we install it too.</p>
+<pre><span class="c"># 1. Next.js app (TypeScript, Tailwind, App Router, src/)</span>
+npx create-next-app@latest . --ts --tailwind --app --src-dir --eslint --import-alias <span class="s">"@/*"</span>
+
+<span class="c"># 2. 3D + physics + state</span>
+npm i three @react-three/fiber @react-three/drei @react-three/rapier ecctrl leva zustand lucide-react
+npm i -D @types/three
+
+<span class="c"># 3. Asset tooling (run on demand, no install)</span>
+npx @gltf-transform/cli optimize in.glb out.glb --compress meshopt --palette false --simplify false</pre>
+  <div class="tbl"><table>
+    <tr><th>Package</th><th>Version</th><th>Role</th></tr>
+    <tr><td>next / react</td><td>16.4 / 19.3</td><td>Framework, routing, server rendering of non-3D pages</td></tr>
+    <tr><td>three</td><td>0.187</td><td>WebGL engine</td></tr>
+    <tr><td>@react-three/fiber</td><td>9.8</td><td>React renderer for Three.js</td></tr>
+    <tr><td>@react-three/drei</td><td>10.7</td><td>useGLTF, Environment, KeyboardControls, OrbitControls, Html, PerformanceMonitor, ContactShadows</td></tr>
+    <tr><td>@react-three/rapier</td><td>2.2</td><td>Physics: colliders, sensors, rigid bodies</td></tr>
+    <tr><td>ecctrl</td><td>2.0</td><td>Ready-made floating-capsule character controller with animation + joystick support</td></tr>
+    <tr><td>zustand</td><td>5.0</td><td>Cart + UI state</td></tr>
+  </table></div>
+</div></section>
+
+<!-- 5 PLAYER -->
+<section id="player"><div class="wrap">
+  <div class="eyebrow">05 · Character & camera</div>
+  <h2>Walking around the store</h2>
+  <p>ecctrl gives us a physics capsule that floats slightly above the floor (so it glides over small steps), reads keyboard or joystick input, and drives a follow camera. We put a rigged character GLB inside it and map its clips to the expected names.</p>
+  <div class="grid g3">
+    <div class="card"><span class="tag t-b">Input</span><h4>Keyboard + touch</h4><p>drei <code>KeyboardControls</code> maps WASD/arrows, Shift to run, E to interact. On touch devices an on-screen joystick and an "Inspect" button replace them.</p></div>
+    <div class="card"><span class="tag t-g">Physics</span><h4>Collisions</h4><p>Walls, tables and the counter are fixed Rapier <code>RigidBody</code>s with cuboid colliders. The capsule cannot pass through them, and the camera is pulled in when a wall gets between it and the player.</p></div>
+    <div class="card"><span class="tag t-v">Animation</span><h4>Idle / walk / run</h4><p>A CC0 Quaternius character with clips renamed to ecctrl's set (<code>idle, walk, run, jump…</code>). ecctrl cross-fades them based on speed.</p></div>
+  </div>
+</div></section>
+
+<!-- 6 INTERACT -->
+<section id="interact"><div class="wrap">
+  <div class="eyebrow">06 · Product interaction</div>
+  <h2>From "walk past" to "hold it in your hand"</h2>
+  <div class="diagram" role="img" aria-label="Interaction flow: player enters sensor, prompt appears, press E opens inspect viewer, choose colour and storage, add to cart.">
+  <svg viewBox="0 0 960 150" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+    <rect x="10" y="30" width="165" height="90" rx="12" class="bx-b"/><text x="26" y="62" font-size="14" font-weight="700">Enter sensor</text><text x="26" y="84" font-size="12" class="muted">CuboidCollider sensor</text><text x="26" y="102" font-size="12" class="muted">~1.5 m around phone</text>
+    <rect x="205" y="30" width="165" height="90" rx="12" class="bx-a"/><text x="221" y="62" font-size="14" font-weight="700">Set state</text><text x="221" y="84" font-size="12" class="muted">nearProductId = id</text><text x="221" y="102" font-size="12" class="muted">phone glows</text>
+    <rect x="400" y="30" width="165" height="90" rx="12" class="bx-v"/><text x="416" y="62" font-size="14" font-weight="700">Prompt</text><text x="416" y="84" font-size="12" class="muted">"Press E / tap"</text><text x="416" y="102" font-size="12" class="muted">controls pause</text>
+    <rect x="595" y="30" width="165" height="90" rx="12" class="bx-v"/><text x="611" y="62" font-size="14" font-weight="700">Inspect</text><text x="611" y="84" font-size="12" class="muted">2nd Canvas, Orbit</text><text x="611" y="102" font-size="12" class="muted">360° spin + zoom</text>
+    <rect x="790" y="30" width="160" height="90" rx="12" class="bx-g"/><text x="806" y="62" font-size="14" font-weight="700">Choose & add</text><text x="806" y="84" font-size="12" class="muted">colour → Body mat</text><text x="806" y="102" font-size="12" class="muted">storage → price</text>
+    <path d="M175 75 H203" class="ln" marker-end="url(#arr2)"/><path d="M370 75 H398" class="ln" marker-end="url(#arr2)"/><path d="M565 75 H593" class="ln" marker-end="url(#arr2)"/><path d="M760 75 H788" class="ln" marker-end="url(#arr2)"/>
+  </svg>
+  </div>
+  <p>The inspect view is a <strong>separate, small Canvas</strong> inside the product panel, not the main camera flying over. It is simpler to build, works the same on mobile, and lets us use drei's <code>&lt;Stage&gt;</code> for studio lighting. The phone's <code>Screen</code> material has 0–1 UVs, so we map our own wallpaper art onto it and it lights up when inspected.</p>
+</div></section>
+
+<!-- 7 SHOP -->
+<section id="shop"><div class="wrap">
+  <div class="eyebrow">07 · Cart & checkout</div>
+  <h2>Real shopping logic, simulated payment</h2>
+  <div class="grid g2">
+    <div class="card"><h4>Cart (zustand + persist)</h4><p>Line items are keyed by product + colour + storage. You can change storage or quantity in the drawer and remove items. Subtotal, a flat Kampala delivery fee and the total are formatted as <code>UGX 1,499,000</code>.</p></div>
+    <div class="card"><h4>Checkout (/checkout)</h4><p>Name, phone, delivery area (Kampala divisions), and a payment choice: MTN MoMo, Airtel Money, or cash on delivery. "Pay" shows a mock "approve on your phone" step, then an order number and a boda ETA. A visible banner says no money is taken.</p></div>
+  </div>
+  <div class="callout"><strong>Deliberately out of scope for v1:</strong> real payment APIs, accounts, inventory, vendor dashboard. These come after the experience itself is proven, exactly as the brief says.</div>
+</div></section>
+
+<!-- 8 ASSETS -->
+<section id="assets"><div class="wrap">
+  <div class="eyebrow">08 · 3D asset pipeline</div>
+  <h2>Blender → GLB → optimise → browser</h2>
+  <div class="diagram" role="img" aria-label="Asset pipeline: Blender python script or MCP generates models, exports GLB, gltf-transform compresses, files placed in public/models, loaded by useGLTF.">
+  <svg viewBox="0 0 960 170" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+    <rect x="10" y="20" width="200" height="130" rx="12" class="bx-a"/><text x="26" y="48" font-size="14" font-weight="700">Source</text><text x="26" y="72" font-size="12" class="muted">phones.py (procedural)</text><text x="26" y="90" font-size="12" class="muted">Claude ↔ Blender MCP</text><text x="26" y="108" font-size="12" class="muted">Kenney / Quaternius CC0</text><text x="26" y="126" font-size="12" class="muted">Poly Haven HDRI, textures</text>
+    <rect x="250" y="20" width="200" height="130" rx="12" class="box"/><text x="266" y="48" font-size="14" font-weight="700">Blender 5.2</text><text x="266" y="72" font-size="12" class="muted">metres, Z-up</text><text x="266" y="90" font-size="12" class="muted">origin bottom-centre</text><text x="266" y="108" font-size="12" class="muted">named materials</text><text x="266" y="126" font-size="12" class="muted">export GLB (+Y up)</text>
+    <rect x="490" y="20" width="200" height="130" rx="12" class="bx-g"/><text x="506" y="48" font-size="14" font-weight="700">gltf-transform</text><text x="506" y="72" font-size="12" class="muted">meshopt geometry</text><text x="506" y="90" font-size="12" class="muted">WebP textures</text><text x="506" y="108" font-size="12" class="muted">--palette false</text><text x="506" y="126" font-size="12" class="muted">~85 KB → ~20 KB</text>
+    <rect x="730" y="20" width="220" height="130" rx="12" class="bx-b"/><text x="746" y="48" font-size="14" font-weight="700">public/models/</text><text x="746" y="72" font-size="12" class="muted">phones/*.glb</text><text x="746" y="90" font-size="12" class="muted">fixtures/*.glb</text><text x="746" y="108" font-size="12" class="muted">manifest.json</text><text x="746" y="126" font-size="12" class="muted">→ useGLTF in R3F</text>
+    <path d="M210 85 H248" class="ln" marker-end="url(#arr3)"/><path d="M450 85 H488" class="ln" marker-end="url(#arr3)"/><path d="M690 85 H728" class="ln" marker-end="url(#arr3)"/>
+  </svg>
+  </div>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th>Tier</th><th>Camera design</th><th>Triangles</th><th>Optimised size</th></tr>
+    <tr><td>Nova A1</td><td>Budget</td><td>Single lens, no island</td><td>1,350</td><td>14 KB</td></tr>
+    <tr><td>Nova A5</td><td>Entry</td><td>Vertical pill, dual</td><td>2,362</td><td>19 KB</td></tr>
+    <tr><td>Pulse X</td><td>Mid-range</td><td>Square island, triple</td><td>2,546</td><td>20 KB</td></tr>
+    <tr><td>Pulse X Pro</td><td>Upper mid</td><td>Large circular island</td><td>2,994</td><td>22 KB</td></tr>
+    <tr><td>Zenith Ultra</td><td>Flagship</td><td>Full-width camera bar</td><td>2,674</td><td>21 KB</td></tr>
+  </table></div>
+  <figure class="hero-img"><img src="img/lineup-front.png" alt="The same five phones from the front, showing thin bezels and punch-hole selfie cameras."><figcaption>Front view. The dark display uses the <code>Screen</code> material, ready for our own wallpaper art.</figcaption></figure>
+  <p>Full details, including MCP setup, conventions and licences, are in <a href="ASSET-PIPELINE.md">ASSET-PIPELINE.md</a> and <a href="ASSETS-CREDITS.md">ASSETS-CREDITS.md</a>.</p>
+</div></section>
+
+<!-- 9 PERF -->
+<section id="perf"><div class="wrap">
+  <div class="eyebrow">09 · Performance for Uganda</div>
+  <h2>Built for a mid-range Android on 4G</h2>
+  <p>4G covers mainly the towns and 3G is still common. Most visitors will come from TikTok on a phone. So the budget is set from day one, not left to the end.</p>
+  <div class="grid g4">
+    <div class="card"><span class="tag t-a">Payload</span><h4>≤ 5 MB</h4><p>Total first 3D download. All 5 phones together are currently ~115 KB.</p></div>
+    <div class="card"><span class="tag t-b">Frame rate</span><h4>≥ 30 fps</h4><p>On a mid-range Android; 60 on desktop. DPR is capped at 1.5 and drops to 1 automatically.</p></div>
+    <div class="card"><span class="tag t-g">Lighting</span><h4>Cheap but pretty</h4><p>1K HDRI + one light + ContactShadows. No real-time shadow maps on mobile.</p></div>
+    <div class="card"><span class="tag t-v">Loading</span><h4>Progressive</h4><p>The store shell loads first; phones stream in; <code>useGLTF.preload</code> warms the next ones.</p></div>
+  </div>
+</div></section>
+
+<!-- 10 TREE -->
+<section id="tree"><div class="wrap">
+  <div class="eyebrow">10 · Project structure</div>
+  <h2>Where everything goes</h2>
+<pre>3D-Shope/
+├── blender/phones.py            <span class="c"># procedural phones + fixtures (exists)</span>
+├── docs/                        <span class="c"># this page, BUILD-PLAN, RESEARCH, pipeline, credits</span>
+├── public/models/
+│   ├── phones/*.glb             <span class="c"># 5 phones (exists)</span>
+│   ├── fixtures/*.glb           <span class="c"># podium, display table (exists)</span>
+│   ├── characters/              <span class="c"># Quaternius CC0 character</span>
+│   └── environment/             <span class="c"># Kenney props, plants</span>
+└── src/
+    ├── app/{page, store/page, checkout/page}.tsx
+    ├── components/3d/{Experience, StoreScene, Player, PhoneDisplay, PhoneModel, InspectViewer}.tsx
+    ├── components/{ui, products, cart}/
+    ├── store/{cart-store, ui-store}.ts
+    ├── data/products.ts
+    └── types/product.ts</pre>
+</div></section>
+
+<!-- 11 ROADMAP -->
+<section id="roadmap"><div class="wrap">
+  <div class="eyebrow">11 · Roadmap</div>
+  <h2>Six phases to a demo you can post</h2>
+  <div class="card">
+    <div class="phase"><div class="n">0</div><div><h4>Setup · ½ day</h4><p>create-next-app, install the stack, git + Vercel preview deploys.</p></div></div>
+    <div class="phase"><div class="n">1</div><div><h4>Environment · 1–2 days</h4><p>Canvas, HDRI lighting, showroom room, fixtures from Blender, colliders, loader, PerformanceMonitor.</p></div></div>
+    <div class="phase"><div class="n">2</div><div><h4>Character + mobile controls · 2 days</h4><p>ecctrl player, animations, follow camera, collisions, on-screen joystick.</p></div></div>
+    <div class="phase"><div class="n">3</div><div><h4>Phones + interaction · 2 days</h4><p>Catalogue data, phone displays, proximity prompt, inspect viewer, colour + storage selection.</p></div></div>
+    <div class="phase"><div class="n">4</div><div><h4>Cart + checkout · 1–2 days</h4><p>Persistent cart, drawer, mock MoMo / Airtel Money checkout and delivery request.</p></div></div>
+    <div class="phase"><div class="n">5</div><div><h4>Polish + ship · 2 days</h4><p>Budget checks on real Android, Vercel production, OG image, TikTok + LinkedIn recordings.</p></div></div>
+  </div>
+  <p>Task-level checklists with "done when" criteria are in <a href="BUILD-PLAN.md">BUILD-PLAN.md</a>. Market and version research with sources is in <a href="RESEARCH.md">RESEARCH.md</a>.</p>
+</div></section>
+
+<footer><div class="wrap">VIRTU.STORE · architecture explainer · product names and prices are placeholders · all 3D phone models are original, generated by <code>blender/phones.py</code>.</div></footer>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐ Theme</button>
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{var saved=localStorage.getItem('virtu-theme'); if(saved) root.setAttribute('data-theme',saved);}catch(e){}
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    try{localStorage.setItem('virtu-theme',next);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
