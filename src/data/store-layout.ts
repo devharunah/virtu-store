@@ -16,7 +16,10 @@ export const HALF_W = ROOM.width / 2;
 export const HALF_D = ROOM.depth / 2;
 
 /** Where the camera (and in Phase 2 the player) starts: just inside the door, facing the hero podium. */
-export const SPAWN = { position: [0, 1.65, 4.3] as [number, number, number], lookAt: [0, 1.1, -2] as [number, number, number] };
+export const SPAWN = {
+  position: [0, 1.65, 4.3] as [number, number, number],
+  lookAt: [0, 1.1, -2] as [number, number, number],
+};
 
 export type Vec3 = [number, number, number];
 
@@ -113,12 +116,14 @@ export const FIXTURES: Fixture[] = [
     rotationY: -Math.PI / 2,
     collider: { halfExtents: [1.06, 0.5, 0.35], center: [0, 0.5, 0] },
   },
-  ...([
-    [-5.5, -4.5],
-    [5.5, -4.5],
-    [-5.4, 4.4],
-    [5.4, 4.4],
-  ] as const).map(([x, z], i) => ({
+  ...(
+    [
+      [-5.5, -4.5],
+      [5.5, -4.5],
+      [-5.4, 4.4],
+      [5.4, 4.4],
+    ] as const
+  ).map(([x, z], i) => ({
     id: `plant-${i + 1}`,
     model: "/models/environment/plant.glb",
     position: [x, 0, z] as Vec3,
@@ -131,4 +136,7 @@ export const FIXTURES: Fixture[] = [
 export const WALL_BAY_SHELVES = [0.12, 0.975, 1.375, 1.775];
 export const WALL_BAY_INNER_WIDTH = 2.2;
 
-export const SIGN = { model: "/models/environment/sign.glb", position: [0, 2.5, -HALF_D + 0.01] as Vec3 };
+export const SIGN = {
+  model: "/models/environment/sign.glb",
+  position: [0, 2.5, -HALF_D + 0.01] as Vec3,
+};

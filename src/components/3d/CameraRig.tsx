@@ -1,11 +1,11 @@
 "use client";
 
+import { HALF_D, HALF_W, ROOM, SPAWN } from "@/data/store-layout";
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { HALF_D, HALF_W, ROOM, SPAWN } from "@/data/store-layout";
 
 export const BASE_FOV = 55;
 const MARGIN = 0.35;
@@ -48,7 +48,11 @@ export function CameraRig() {
       clamp(p.z, -HALF_D + MARGIN, HALF_D + 1),
     );
     const t = c.target;
-    t.set(clamp(t.x, -HALF_W + 1, HALF_W - 1), clamp(t.y, 0.3, 2.5), clamp(t.z, -HALF_D + 0.5, HALF_D - 0.5));
+    t.set(
+      clamp(t.x, -HALF_W + 1, HALF_W - 1),
+      clamp(t.y, 0.3, 2.5),
+      clamp(t.z, -HALF_D + 0.5, HALF_D - 0.5),
+    );
   });
 
   return (
