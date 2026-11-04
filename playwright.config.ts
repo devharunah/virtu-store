@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env["CI"]);
 // Its own port, so a stray dev server on 3000 is never mistaken for the app under test.
-const PORT = 3100;
+// E2E_PORT lets two worktrees run their suites side by side.
+const PORT = Number(process.env["E2E_PORT"] ?? 3100);
 
 export default defineConfig({
   testDir: "./e2e",
