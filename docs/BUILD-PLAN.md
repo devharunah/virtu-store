@@ -14,7 +14,7 @@ A polished, shareable prototype (LinkedIn/TikTok) where a visitor can:
 |---|---|
 | `blender/phones.py` | Procedural generator for 5 phones + podium + display table. Re-run it any time |
 | `public/models/phones/*.glb` | 5 optimised phones (meshopt, ~14–23 KB each) |
-| `public/models/fixtures/*.glb` | `podium.glb`, `display_table.glb` |
+| `public/models/shop/*` | The Kampala arcade shop: baked shell, counter glass, ceiling fan, lightmap (`blender/shop.py`) |
 | `public/models/manifest.json` | ids, dimensions, triangle counts, material names |
 | `docs/img/lineup-*.png` | Blender preview renders |
 
@@ -163,6 +163,21 @@ Built in parallel by a subagent in its own git worktree, then wired into the sto
 
 Real frame rate still has to be measured on a real device (the automated browser renders WebGL in software).
 Biggest remaining saving: a 512 px HDRI or a prefiltered environment map (about 1 MB).
+
+## Realism, Track B: Kampala arcade phone shop ✅
+- [x] `src/data/shop-layout.json` is the single source of truth: Blender builds the geometry from it, and the app builds colliders and phone slots from it
+- [x] `blender/make_signs.py` draws one signage atlas: the VIRTU MOBILE signboard, five fictional neighbouring shops, generic yellow/red "Mobile Money" boards (no MTN/Airtel logos), posters, "No credit today, come tomorrow", pegboard, shutter slats
+- [x] `blender/shop.py` builds:
+  - a 9 × 6 m shop on a 4 m arcade corridor, with a half-raised roll-up shutter;
+  - glass counters in a U (phones lie under the glass on velvet, strip-lit) and a lit hero stand;
+  - a mobile money desk, back-wall stock shelves, the pegboard, posters, monobloc chairs, tube lights and a ceiling fan;
+  - Cycles **baked lighting** (2K lightmap on UV1).
+- [x] The app (`ShopShell.tsx`) applies tile, paint and corridor textures plus the lightmap by material name; the glass is transparent and the fan spins; the stock boxes and accessory packs are instanced
+- [x] The visitor spawns in the corridor and walks in through the shutter; the camera stays inside the shop or the corridor (`camera-bounds.ts`)
+- [ ] The monobloc chairs are simple stand-ins until the Meshy key arrives (Meshy text-to-3D chair)
+
+## Realism, Track A: your avatar (waiting on photos, height, Meshy key)
+See `docs/realism-plan.html`.
 
 ---
 

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIRTU Realism Plan</title>
+<meta name="description" content="How VIRTU.STORE gets an avatar that looks like you and a real Kampala arcade phone shop.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--surface:#fff;--surface-2:#efece5;--ink:#17181b;--ink-2:#4a4d55;--ink-3:#7a7d85;--line:#dcd8cf;--accent:#d9822b;--accent-ink:#8a4a0c;--accent-soft:#fbe9d5;--blue:#2c6e8f;--blue-soft:#dcebf2;--green:#3e7c59;--green-soft:#dcefe3;--radius:14px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121316;--surface:#1b1d21;--surface-2:#23262b;--ink:#eceae5;--ink-2:#b3b5bb;--ink-3:#868991;--line:#2f3238;--accent:#f0a050;--accent-ink:#ffc58a;--accent-soft:#3a2a19;--blue:#6fb3d6;--blue-soft:#18303c;--green:#7cc79b;--green-soft:#1a3326}}
+:root[data-theme="dark"]{--bg:#121316;--surface:#1b1d21;--surface-2:#23262b;--ink:#eceae5;--ink-2:#b3b5bb;--ink-3:#868991;--line:#2f3238;--accent:#f0a050;--accent-ink:#ffc58a;--accent-soft:#3a2a19;--blue:#6fb3d6;--blue-soft:#18303c;--green:#7cc79b;--green-soft:#1a3326}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+header{padding:48px 0 20px}.eyebrow{font:600 12px/1 Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink)}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.08;margin:10px 0}h2{font-size:clamp(22px,3vw,28px);margin:0 0 12px}
+.lede{font-size:18px;color:var(--ink-2);max-width:680px}
+section{padding:36px 0;border-top:1px solid var(--line)}
+.answer{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:16px 18px;font-size:17px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.card h3{margin:0 0 8px;font-size:16px}.card ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:15px}
+.tag{display:inline-block;font:600 11px Inter;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-bottom:8px}
+.t-a{background:var(--accent-soft);color:var(--accent-ink)}.t-b{background:var(--blue-soft);color:var(--blue)}.t-g{background:var(--green-soft);color:var(--green)}
+ol.steps{list-style:none;padding:0;margin:0;display:grid;gap:10px;counter-reset:s}
+ol.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 50px;position:relative;font-size:15px}
+ol.steps li::before{content:counter(s);position:absolute;left:14px;top:11px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font:700 12px/24px Inter;text-align:center}
+ol.steps b{color:var(--ink)}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:620px;height:auto}.diagram text{font-family:Inter,sans-serif;fill:var(--ink)}
+.diagram .m{fill:var(--ink-3)}.b1{fill:var(--accent-soft);stroke:var(--accent)}.b2{fill:var(--blue-soft);stroke:var(--blue)}.b3{fill:var(--green-soft);stroke:var(--green)}.ln{stroke:var(--ink-3);stroke-width:1.5;fill:none}.ah{fill:var(--ink-3)}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}th{background:var(--surface-2);font-size:13px;color:var(--ink-2)}tr:last-child td{border-bottom:0}
+.need li{margin-bottom:6px}.need code{background:var(--surface-2);padding:1px 6px;border-radius:6px;font-size:.9em}
+.pose{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.pose svg{flex:0 0 auto}
+footer{padding:28px 0 56px;color:var(--ink-3);font-size:13px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">VIRTU.STORE · realism plan</div>
+  <h1>An avatar of you, in a real Kampala phone shop</h1>
+  <p class="lede">Two tracks run in parallel. The shop is built; the avatar starts as soon as your Avaturn export arrives. Both routes are free.</p>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Meshy or Blender?</h2>
+  <p class="answer"><strong>Blender for the shop; free web tools for you.</strong> Meshy's API needs the Pro plan, so Avaturn (your face on a full body) and Mixamo (rig and animations) build your avatar for free. Blender builds the shop, cleans every downloaded file and bakes realistic lighting.</p>
+  <div class="diagram" role="img" aria-label="Your photos go to Meshy for the avatar; Blender builds the shop and cleans Meshy output; both are optimised and loaded by the web app.">
+  <svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="ah"/></marker></defs>
+    <rect x="10" y="20" width="160" height="70" rx="12" class="b1"/><text x="26" y="50" font-size="15" font-weight="700">Your photos</text><text x="26" y="72" font-size="12" class="m">3 selfies</text>
+    <rect x="220" y="20" width="200" height="70" rx="12" class="b1"/><text x="236" y="50" font-size="15" font-weight="700">Avaturn + Mixamo</text><text x="236" y="72" font-size="12" class="m">face → body · rig · animations</text>
+    <rect x="10" y="130" width="160" height="70" rx="12" class="b2"/><text x="26" y="160" font-size="15" font-weight="700">Shop design</text><text x="26" y="182" font-size="12" class="m">Kampala arcade</text>
+    <rect x="220" y="130" width="200" height="70" rx="12" class="b2"/><text x="236" y="160" font-size="15" font-weight="700">Blender scripts</text><text x="236" y="182" font-size="12" class="m">shop · clean-up · light bake</text>
+    <rect x="470" y="75" width="190" height="70" rx="12" class="b3"/><text x="486" y="105" font-size="15" font-weight="700">Optimise</text><text x="486" y="127" font-size="12" class="m">gltf-transform · meshopt</text>
+    <rect x="710" y="75" width="180" height="70" rx="12" class="b3"/><text x="726" y="105" font-size="15" font-weight="700">VIRTU.STORE</text><text x="726" y="127" font-size="12" class="m">web · phones · desktop</text>
+    <path d="M170 55H218" class="ln" marker-end="url(#a)"/><path d="M170 165H218" class="ln" marker-end="url(#a)"/>
+    <path d="M320 90V128" class="ln" marker-end="url(#a)"/><text x="328" y="114" font-size="11" class="m">clean + merge clips</text>
+    <path d="M420 165C450 165 445 120 468 115" class="ln" marker-end="url(#a)"/>
+    <path d="M660 110H708" class="ln" marker-end="url(#a)"/>
+  </svg></div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><span class="tag t-a">Avaturn + Mixamo</span><h3>Free route for you</h3><ul><li>Avaturn: your face on a realistic full body, from selfies</li><li>Mixamo: auto-rig + idle/walk/run/jump</li></ul><h3 style="margin-top:10px">Meshy</h3><ul><li>(Pro plan needed for the API, so swapped for Avaturn + Mixamo, both free)</li></ul></div>
+    <div class="card"><span class="tag t-b">Blender</span><h3>Best for</h3><ul><li>Precise, light, repeatable shop pieces</li><li>Cutting Meshy output to web size (1.1 M → ~30 k faces)</li><li>Baked lighting: the biggest realism gain</li></ul></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Track A · your avatar (free: Avaturn + Mixamo)</h2>
+  <p>Meshy's API needs the Pro plan, so we use two free tools instead. You do the web steps (they need your sign-in); I script everything after the downloads.</p>
+  <ol class="steps">
+    <li><b>Avaturn</b> (<a href="https://avaturn.me">avaturn.me</a>, free account): create an avatar from 3 selfies (front, left, right). Pick a <b>white shirt + dark trousers</b>, then <b>Export → GLB</b>. Save it as <code>blender/source/avatar/avaturn.glb</code>.</li>
+    <li><b>Me:</b> I convert it into a Mixamo-ready file, <code>blender/source/avatar/for-mixamo.fbx</code>.</li>
+    <li><b>Mixamo</b> (<a href="https://www.mixamo.com">mixamo.com</a>, free Adobe ID): <b>Upload Character</b> → that FBX → confirm the auto-rig markers.</li>
+    <li>In Mixamo, download 4 FBX files at 30 fps into <code>blender/source/avatar/</code>:
+      <b>Idle</b> (<i>With Skin</i>) → <code>idle.fbx</code>;
+      <b>Walking</b>, <b>Running</b> (<i>Without Skin</i>, tick <i>In Place</i>) → <code>walk.fbx</code>, <code>run.fbx</code>;
+      <b>Jump</b> (<i>Without Skin</i>) → <code>jump.fbx</code>.</li>
+    <li><b>Me:</b> <code>blender/avatar.py</code> merges the 4 clips, sets your height, shrinks the textures, and replaces the walking character. You then see yourself in the shop.</li>
+  </ol>
+  <h3 style="margin-top:22px">Selfie checklist (Avaturn)</h3>
+  <ul class="need">
+    <li>Front, then turn your head left and right (Avaturn guides you)</li>
+    <li>Even daylight on your face, no hat or glasses, neutral expression</li>
+    <li>Plain background behind you</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Track B · Kampala arcade phone shop</h2>
+  <div class="grid">
+    <div class="card"><span class="tag t-b">Space</span><h3>Arcade unit</h3><ul><li>About 9 × 6 m shop on a 3 m corridor</li><li>Roll-up metal shutter, half raised</li><li>Neighbouring shutters and signboards</li></ul></div>
+    <div class="card"><span class="tag t-b">Selling</span><h3>Glass counters in a U</h3><ul><li>Phones displayed under glass, strip-lit</li><li>Hero iPhone on a lit stand</li><li>Back wall of phone boxes</li></ul></div>
+    <div class="card"><span class="tag t-b">Local touches</span><h3>Feels like Kampala</h3><ul><li>Accessories pegboard (chargers, earphones, cases)</li><li>"Mobile Money" agent desk, generic yellow/red</li><li>Monobloc chairs, tube lights, ceiling fan</li></ul></div>
+    <div class="card"><span class="tag t-b">Finish</span><h3>Realism pass</h3><ul><li>Ceramic tile floor, painted walls</li><li>"VIRTU MOBILE" signboard, our own posters</li><li>Baked light and shadows from Blender</li></ul></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Budgets</h2>
+  <table>
+    <tr><th>What</th><th>Limit</th><th>Why</th></tr>
+    <tr><td>First load (shop + avatar + phones)</td><td>≤ 5 MB</td><td>Mid-range Android on 4G</td></tr>
+    <tr><td>Avatar</td><td>~30 k triangles · ~1.5 MB</td><td>Stays smooth while walking</td></tr>
+    <tr><td>Draw calls</td><td>≤ 150</td><td>Merged shop pieces, instanced accessories</td></tr>
+  </table>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What I need from you</h2>
+  <ul class="need">
+    <li><b>avaturn.glb</b> from Avaturn (step 1), then the 4 Mixamo FBX files (step 4), all in <code>blender/source/avatar/</code> (never committed).</li>
+    <li><b>Your height</b> in metres.</li>
+  </ul>
+  <p class="answer" style="margin-top:16px">Status: the <b>Kampala shop is built</b>, with baked lighting, 113 draw calls and a lightmap of about 185 KB. The avatar starts when <code>avaturn.glb</code> arrives.</p>
+</div></section>
+
+<footer><div class="wrap">VIRTU.STORE · realism plan · generic mobile money signs (no MTN/Airtel logos) · phone trademarks belong to Apple and Samsung.</div></footer>
+</body>
+</html>

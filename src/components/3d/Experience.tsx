@@ -11,12 +11,7 @@ import { TouchControls } from "@/components/ui/TouchControls";
 import { ROOM } from "@/data/store-layout";
 import { useCart } from "@/store/cart-store";
 import { useUiStore } from "@/store/ui-store";
-import {
-  ContactShadows,
-  Environment,
-  KeyboardControls,
-  PerformanceMonitor,
-} from "@react-three/drei";
+import { Environment, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useEffect, useState } from "react";
@@ -75,13 +70,17 @@ export default function Experience() {
             onIncline={() => setDpr(1.5)}
             flipflops={3}
           />
-          <color attach="background" args={["#dfe6ea"]} />
-          <fog attach="fog" args={["#dfe6ea", 14, 40]} />
+          <color attach="background" args={["#1d1e20"]} />
 
-          {/* Image-based light from a 1K Poly Haven studio HDRI (lighting only, not shown as background) */}
-          <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.95} />
-          <hemisphereLight args={["#fff6e6", "#8a7f70", 0.65]} />
-          <directionalLight position={[3, ROOM.height + 2, 4]} intensity={1.1} color="#fff1dc" />
+          {/* The shop's light is baked into its lightmap (Blender/Cycles). These lights only shade
+              what moves or changes: phones, the visitor, the glass. Cool fluorescent tone. */}
+          <Environment files="/hdri/brown_photostudio_02_1k.hdr" environmentIntensity={0.8} />
+          <hemisphereLight args={["#eef6ff", "#6f6a62", 0.2]} />
+          <directionalLight
+            position={[0, ROOM.height - 0.2, 1.5]}
+            intensity={0.55}
+            color="#f2f8ff"
+          />
 
           <Suspense fallback={null}>
             <Physics debug={debug}>
@@ -89,16 +88,6 @@ export default function Experience() {
               <Player />
             </Physics>
             <Interaction />
-            {/* Rendered once after everything has loaded: soft shadows under fixtures for free */}
-            <ContactShadows
-              position={[0, 0.003, 0]}
-              scale={[ROOM.width, ROOM.depth]}
-              resolution={1024}
-              far={2.5}
-              blur={2.2}
-              opacity={0.55}
-              frames={1}
-            />
           </Suspense>
 
           <FollowCamera />

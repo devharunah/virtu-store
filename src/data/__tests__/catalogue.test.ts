@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { resolveDisplaySlots } from "@/lib/display-slots";
 import { getProduct, products } from "../products";
-import { FIXTURES, HALF_D, HALF_W, ROOM, SPAWN } from "../store-layout";
+import { CORRIDOR, FIXTURES, HALF_D, HALF_W, INTERACT_RADIUS, SPAWN, WALLS } from "../store-layout";
 
 const publicFile = (url: string) => join(process.cwd(), "public", url);
 
@@ -57,44 +58,68 @@ describe("phone models", () => {
   });
 });
 
-describe("store layout", () => {
-  it("places every fixture inside the room", () => {
+describe("kampala shop layout", () => {
+  const CAPSULE_CLEARANCE = 0.35; // visitor capsule radius + a little air
+
+  it("ships the baked shop models and lightmap", () => {
+    for (const f of ["shop_shell.glb", "shop_glass.glb", "shop_fan.glb", "lightmap.webp"]) {
+      expect(existsSync(publicFile(`/models/shop/${f}`))).toBe(true);
+    }
+  });
+
+  it("places every fixture inside the shop", () => {
     for (const f of FIXTURES) {
       const [x, , z] = f.position;
       expect(Math.abs(x)).toBeLessThan(HALF_W);
-      expect(Math.abs(z)).toBeLessThanOrEqual(HALF_D);
+      expect(Math.abs(z)).toBeLessThan(HALF_D);
     }
   });
 
-  it("points every fixture at a model that exists", () => {
-    for (const f of FIXTURES) expect(existsSync(publicFile(f.model))).toBe(true);
-  });
-
-  it("only displays products and colourways that exist", () => {
+  it("only displays products and colourways that exist, and every product is on show", () => {
+    const shown = new Set<string>();
     for (const f of FIXTURES) {
       for (const slot of f.phones ?? []) {
         const p = getProduct(slot.productId);
-        expect(p).toBeDefined();
         expect(p?.colours[slot.colourIndex]).toBeDefined();
+        shown.add(slot.productId);
       }
     }
-  });
-
-  it("puts every product on display somewhere", () => {
-    const shown = new Set(FIXTURES.flatMap((f) => (f.phones ?? []).map((s) => s.productId)));
     for (const p of products) expect(shown.has(p.id)).toBe(true);
   });
 
-  it("spawns the visitor inside the room, clear of every fixture", () => {
-    const [sx, sy, sz] = SPAWN.position;
-    expect(Math.abs(sx)).toBeLessThan(HALF_W);
-    expect(Math.abs(sz)).toBeLessThan(HALF_D);
-    expect(sy).toBeLessThan(ROOM.height);
-    for (const f of FIXTURES) {
-      const [hx, , hz] = f.collider.halfExtents;
-      const r = Math.max(hx, hz);
-      const dist = Math.hypot(sx - f.position[0], sz - f.position[2]);
-      expect(dist).toBeGreaterThan(r);
+  it("lets the visitor reach every phone from the floor (within the inspect radius)", () => {
+    // The visitor can stand right against a fixture's front face; the slot sits on its centre line.
+    const counters = FIXTURES.filter((f) => f.collider);
+    for (const slot of resolveDisplaySlots(FIXTURES)) {
+      const host = counters.find((c) => {
+        const [hx, , hz] = c.collider?.halfExtents ?? [0, 0, 0];
+        const r = c.rotationY ?? 0;
+        const dx = slot.position[0] - c.position[0];
+        const dz = slot.position[2] - c.position[2];
+        // world -> fixture-local (inverse of the Y rotation)
+        const lx = dx * Math.cos(r) - dz * Math.sin(r);
+        const lz = dx * Math.sin(r) + dz * Math.cos(r);
+        return Math.abs(lx) <= hx + 0.05 && Math.abs(lz) <= hz + 0.35;
+      });
+      const reach = (host?.collider?.halfExtents[2] ?? 0.3) + CAPSULE_CLEARANCE;
+      expect(reach).toBeLessThan(INTERACT_RADIUS);
     }
+  });
+
+  it("spawns the visitor in the corridor, clear of every wall and fixture", () => {
+    const [sx, , sz] = SPAWN.position;
+    expect(sz).toBeGreaterThan(CORRIDOR.z0);
+    expect(sz).toBeLessThan(CORRIDOR.z1);
+    for (const w of WALLS) {
+      const inside =
+        Math.abs(sx - w.center[0]) < w.halfExtents[0] + CAPSULE_CLEARANCE &&
+        Math.abs(sz - w.center[2]) < w.halfExtents[2] + CAPSULE_CLEARANCE;
+      expect(inside).toBe(false);
+    }
+    expect(
+      resolveDisplaySlots(FIXTURES).every(
+        (s) => Math.hypot(s.position[0] - sx, s.position[2] - sz) > INTERACT_RADIUS,
+      ),
+    ).toBe(true);
   });
 });
