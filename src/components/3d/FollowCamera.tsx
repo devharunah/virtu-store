@@ -1,6 +1,6 @@
 "use client";
 
-import { HALF_D, HALF_W, ROOM } from "@/data/store-layout";
+import { clampCamera } from "@/lib/camera-bounds";
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { type ComponentRef, useEffect, useRef } from "react";
@@ -10,8 +10,6 @@ import { playerState } from "./player-state";
 export const BASE_FOV = 55;
 const LOOK_HEIGHT = 0.45; // above the capsule centre: roughly the character's shoulders
 const START_OFFSET = new THREE.Vector3(0, 1.1, 2.0); // behind (+Z) and above, at spawn
-const MARGIN = 0.3;
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Keep a usable horizontal field of view on portrait phones (a fixed vertical FOV becomes a slit). */
 function useResponsiveFov() {
@@ -31,7 +29,7 @@ function useResponsiveFov() {
 /**
  * Third-person camera. OrbitControls gives drag-to-look and pinch/scroll zoom; every frame the
  * orbit target follows the player and the camera moves by the same amount, so the view keeps
- * its angle while the visitor walks. The camera stays inside the room (or the doorway).
+ * its angle while the visitor walks. The camera stays inside the shop or the arcade corridor.
  */
 export function FollowCamera() {
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
@@ -57,11 +55,7 @@ export function FollowCamera() {
     last.current.copy(t);
 
     const p = camera.position;
-    p.set(
-      clamp(p.x, -HALF_W + MARGIN, HALF_W - MARGIN),
-      clamp(p.y, 0.5, ROOM.height - 0.25),
-      clamp(p.z, -HALF_D + MARGIN, HALF_D + 1.5),
-    );
+    p.set(...clampCamera(p.x, p.y, p.z));
   });
 
   return (

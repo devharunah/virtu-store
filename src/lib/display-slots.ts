@@ -24,7 +24,7 @@ export function resolveDisplaySlots(fixtures: readonly Fixture[]): DisplaySlot[]
     const cos = Math.cos(rot);
     const sin = Math.sin(rot);
     phones.forEach((slot, i) => {
-      const lx = slotLocalX(i, phones.length, f.spacing ?? 0.4);
+      const lx = slot.x ?? slotLocalX(i, phones.length, f.spacing ?? 0.4);
       // Rotate (lx, 0) about Y: x' = x cos, z' = -x sin
       out.push({
         id: `${f.id}:${i}`,

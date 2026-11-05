@@ -30,7 +30,7 @@ export const products: Product[] = [
       camera: "50 MP triple",
       ram: "4 GB",
     },
-    displaySlot: "table-1",
+    displaySlot: "counter-left",
   },
   {
     id: "galaxy-a56",
@@ -56,7 +56,7 @@ export const products: Product[] = [
       camera: "50 MP triple",
       ram: "8 GB",
     },
-    displaySlot: "table-1",
+    displaySlot: "counter-left",
   },
   {
     id: "iphone-17",
@@ -83,7 +83,7 @@ export const products: Product[] = [
       camera: "48 MP dual Fusion",
       ram: "8 GB",
     },
-    displaySlot: "table-2",
+    displaySlot: "counter-back",
   },
   {
     id: "galaxy-s25-ultra",
@@ -110,7 +110,7 @@ export const products: Product[] = [
       camera: "200 MP quad, 5x zoom",
       ram: "12 GB",
     },
-    displaySlot: "table-2",
+    displaySlot: "counter-back",
   },
   {
     id: "iphone-17-pro-max",
@@ -137,7 +137,7 @@ export const products: Product[] = [
       camera: "48 MP Pro Fusion triple, 8x zoom",
       ram: "12 GB",
     },
-    displaySlot: "podium",
+    displaySlot: "hero-stand",
   },
 ];
 
