@@ -1,5 +1,7 @@
 import {
   type CheckoutForm,
+  INITIAL_CHECKOUT_FORM,
+  PAYMENT_METHODS,
   deliveryEstimate,
   formatUgPhone,
   hasErrors,
@@ -142,5 +144,12 @@ describe("makeOrderId", () => {
   it("maps the ends of the random range onto the alphabet", () => {
     expect(makeOrderId(() => 0)).toBe("VIRTU-222222");
     expect(makeOrderId(() => 0.999999)).toBe("VIRTU-ZZZZZZ");
+  });
+});
+
+describe("default payment", () => {
+  it("starts on cash on delivery, listed first", () => {
+    expect(INITIAL_CHECKOUT_FORM.payment).toBe("cash");
+    expect(PAYMENT_METHODS[0]?.id).toBe("cash");
   });
 });

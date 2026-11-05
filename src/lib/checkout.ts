@@ -2,10 +2,11 @@ import { type DeliveryArea, isDeliveryArea, isInsideKampala } from "@/lib/pricin
 
 export type PaymentMethod = "mtn-momo" | "airtel-money" | "cash";
 
+/** Cash on delivery comes first and is preselected: most Ugandan shoppers pay the rider. */
 export const PAYMENT_METHODS: readonly { id: PaymentMethod; label: string; hint: string }[] = [
+  { id: "cash", label: "Cash on delivery", hint: "Pay the rider when your phone arrives" },
   { id: "mtn-momo", label: "MTN MoMo", hint: "Approve a prompt on your MTN line" },
   { id: "airtel-money", label: "Airtel Money", hint: "Approve a prompt on your Airtel line" },
-  { id: "cash", label: "Cash on delivery", hint: "Pay the rider when your phone arrives" },
 ];
 
 export const paymentLabel = (method: PaymentMethod) =>
@@ -55,18 +56,18 @@ export interface CheckoutForm {
   /** "" until the shopper picks one. */
   area: DeliveryArea | "";
   notes: string;
-  /** "" until the shopper picks one. */
+  /** Starts on "cash"; "" only if a caller clears it. */
   payment: PaymentMethod | "";
 }
 
 export type CheckoutErrors = Partial<Record<keyof CheckoutForm, string>>;
 
-export const EMPTY_CHECKOUT_FORM: CheckoutForm = {
+export const INITIAL_CHECKOUT_FORM: CheckoutForm = {
   fullName: "",
   phone: "",
   area: "",
   notes: "",
-  payment: "",
+  payment: "cash",
 };
 
 export const MAX_NOTES_LENGTH = 200;
