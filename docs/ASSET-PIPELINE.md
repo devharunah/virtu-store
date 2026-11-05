@@ -63,15 +63,15 @@ Each entry in `PHONES` is data only, approximating a real phone (iPhone 17 Pro M
 
 **Through the MCP** you can say, for example, *"Using blender/phones.py, add a 6th phone with a diagonal dual-camera island, then show me a viewport screenshot."* Claude edits the dict, runs the code in your open Blender, and screenshots the result.
 
-### Store props (`blender/store_props.py`)
-This script imports the helpers from `phones.py` and builds the `counter`, `wall_bay`, `plant` and `sign`. They are exported to `blender/out/` and optimised into `public/models/environment/`. Run it the same way as `phones.py`. **It clears the scene, so run it headless, not inside a Blender file you have open.** Prop dimensions are in `public/models/environment/props.json`; the matching colliders are in `src/data/store-layout.ts`.
-
-| Prop | Size (m) | Triangles | Optimised |
-|---|---|---|---|
-| counter | 2.12 × 0.70 × 1.26 | 1,224 | 11 KB |
-| wall_bay | 2.40 × 0.32 × 2.30 | 3,124 | 19 KB |
-| plant | 0.44 × 0.44 × 1.42 | 3,132 | 24 KB |
-| sign | 3.25 × 0.06 × 0.59 | 1,120 | 10 KB |
+### The Kampala arcade shop (`blender/make_signs.py` + `blender/shop.py`)
+1. `python -I blender/make_signs.py` draws the signage atlas (`blender/out/signs.png` + `signs.json` UV rects). It uses Windows fonts (Impact for the signwriter look).
+2. `blender ... --python blender/shop.py -- --bake [--render]` reads `src/data/shop-layout.json` and builds:
+   - `shop_shell.glb`: every static, opaque piece joined into one mesh. Materials are named (`TileFloor`, `CorridorFloor`, `PaintWall`, `PaintAccent`, `CorridorWall`, `Ceiling`, `Metal`, `Velvet`, `ShelfWhite`, `Wood`, `Plastic`, `ShopDark`, `Signs`, `LED`, `Tube`). UV0 holds the tiling/atlas coordinates (tiling in metres per repeat); UV1 holds `Lightmap` (Smart UV project);
+   - `shop_glass.glb`: the counter glass, excluded from the bake;
+   - `shop_fan.glb`: the node `FanBlades` is spun by the app;
+   - `lightmap.png`: Cycles DIFFUSE bake (direct + indirect, no colour) from the emissive tubes plus area lights and a dim grey world. It uses the GPU when Cycles finds one.
+3. Optimise into `public/models/shop/`: `gltf-transform optimize … --compress meshopt --simplify false --palette false --prune-attributes false --texture-compress webp` (keeps UV1), and convert `lightmap.png` → `lightmap.webp` with a 1.2 px Gaussian blur first (removes bake noise: ~1 MB → ~185 KB).
+4. In the app, `ShopShell.tsx` sets each material's `lightMap` (`channel = 1`, sRGB, `flipY = false`) and adds normal/ARM detail by material name.
 
 ### Player character (`blender/character.py`)
 Download "Animated Human" by Quaternius (CC0) from OpenGameArt, extract it, then:

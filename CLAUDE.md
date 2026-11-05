@@ -45,7 +45,9 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 - **No time estimates** in plans, docs or replies. Describe scope and "done when" criteria only.
 - WebGL code is client-only. `ssr: false` must be used inside a Client Component
   (`ExperienceLoader.tsx`); Next 16 rejects it in Server Components.
-- Every fixture, its collider and its phone slots are defined once, in `src/data/store-layout.ts`.
+- The shop's geometry lives once, in `src/data/shop-layout.json`: `blender/shop.py` builds and bakes the
+  3D shop from it, and `src/data/store-layout.ts` derives colliders, phone slots and spawn from it.
+  Change the JSON, then re-run `make_signs.py` + `shop.py -- --bake`.
 - Phone colourways recolour the GLB material named `Body`; the `Screen` material gets a runtime
   wallpaper (`screen-texture.ts`). Never rename GLB materials, and optimise phones with
   `--palette false --prune-attributes false` (see `docs/ASSET-PIPELINE.md`).
