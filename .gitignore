@@ -53,3 +53,6 @@ playwright-report/
 
 # agent worktrees (Claude Code)
 .claude/worktrees/
+
+# raw source assets (photos, Meshy downloads, bakes): regenerate, never commit
+/blender/source/
