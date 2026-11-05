@@ -58,13 +58,14 @@ test("pays with MTN MoMo and lands on the success screen with an empty bag", asy
   await expect(summary.getByText("Galaxy A56 5G")).toBeVisible();
   await expect(page.getByTestId("order-total")).toHaveText("UGX 3,080,000");
 
-  // An empty form shows every error.
-  await page.getByRole("button", { name: /^Pay UGX/ }).click();
+  // Cash on delivery is preselected, so an empty form shows every error except payment.
+  await expect(page.getByRole("radio", { name: /Cash on delivery/ })).toBeChecked();
+  await page.getByRole("button", { name: /^Place order · UGX/ }).click();
   await expect(page.getByText("Enter your full name.")).toBeVisible();
   await expect(page.getByText("Enter the phone number the rider should call.")).toBeVisible();
   await expect(page.getByText("Choose a delivery area.")).toBeVisible();
   await expect(page.getByText(/Add a landmark/)).toBeVisible();
-  await expect(page.getByText("Choose how you'd like to pay.")).toBeVisible();
+  await expect(page.getByText("Choose how you'd like to pay.")).toHaveCount(0);
 
   await page.getByLabel("Full name").fill("Amina Nakato");
   await page.getByLabel("Phone number").fill("0700 123456");
@@ -109,15 +110,15 @@ test("pays with MTN MoMo and lands on the success screen with an empty bag", asy
   expect(errors).toEqual([]);
 });
 
-test("cash on delivery outside Kampala skips the phone prompt", async ({ page }) => {
+test("cash on delivery is preselected and skips the phone prompt", async ({ page }) => {
   await seedCart(page);
   await page.goto("/checkout");
+  await expect(page.getByRole("radio", { name: /Cash on delivery/ })).toBeChecked();
 
   await page.getByLabel("Full name").fill("Okello James");
   await page.getByLabel("Phone number").fill("+256 712 345678");
   await page.getByLabel("Delivery area").selectOption("Outside Kampala");
   await page.getByLabel("Landmark or address notes").fill("Gulu, near the main market");
-  await page.getByRole("radio", { name: /Cash on delivery/ }).check();
   await expect(page.getByTestId("order-total")).toHaveText("UGX 3,095,000");
   await page.getByRole("button", { name: "Place order · UGX 3,095,000" }).click();
 

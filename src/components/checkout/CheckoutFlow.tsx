@@ -3,7 +3,7 @@
 import {
   type CheckoutErrors,
   type CheckoutForm,
-  EMPTY_CHECKOUT_FORM,
+  INITIAL_CHECKOUT_FORM,
   type PaymentMethod,
   deliveryEstimate,
   formatUgPhone,
@@ -47,7 +47,7 @@ export default function CheckoutFlow() {
   const hydrated = useCartHydrated();
   const lines = useCartLines();
   const clear = useCart((s) => s.clear);
-  const [form, setForm] = useState<CheckoutForm>(EMPTY_CHECKOUT_FORM);
+  const [form, setForm] = useState<CheckoutForm>(INITIAL_CHECKOUT_FORM);
   const [errors, setErrors] = useState<CheckoutErrors>({});
   const [step, setStep] = useState<Step>({ kind: "form" });
   const headingRef = useRef<HTMLHeadingElement>(null);
