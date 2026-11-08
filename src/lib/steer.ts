@@ -49,6 +49,27 @@ export function steerToward(
   return { x: ux * rx + uz * rz, y: ux * fx + uz * fz };
 }
 
+/**
+ * True when the step from `from` to `to` passed within `radius` of the target. On a slow device
+ * one frame can carry the visitor clean over the arrival circle; checking the whole step (not
+ * just where it ended) still counts that as arriving instead of walking on.
+ */
+export function crossedTarget(
+  from: FloorVec,
+  to: FloorVec,
+  target: FloorVec,
+  radius = ARRIVE_RADIUS,
+): boolean {
+  const sx = to.x - from.x;
+  const sz = to.z - from.z;
+  const len2 = sx * sx + sz * sz;
+  const t =
+    len2 < 1e-12
+      ? 0
+      : Math.min(1, Math.max(0, ((target.x - from.x) * sx + (target.z - from.z) * sz) / len2));
+  return Math.hypot(from.x + t * sx - target.x, from.z + t * sz - target.z) <= radius;
+}
+
 /** Progress bookkeeping so a target behind a counter is abandoned instead of walked into forever. */
 export interface Progress {
   /** Closest distance to the target reached so far. */

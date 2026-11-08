@@ -2,6 +2,7 @@ import {
   ARRIVE_RADIUS,
   STUCK_AFTER_S,
   clampToFloor,
+  crossedTarget,
   isStuck,
   startProgress,
   steerToward,
@@ -84,6 +85,28 @@ describe("progress tracking", () => {
     const prev = startProgress(2);
     trackProgress(prev, 2, 0.5);
     expect(prev).toEqual({ best: 2, stalled: 0 });
+  });
+});
+
+describe("crossedTarget", () => {
+  const target = { x: 1.2, z: 2 };
+
+  it("catches a long step that jumps clean over the arrival circle", () => {
+    // Recorded at ~0.5 fps under software WebGL: neither end is within 0.25 m.
+    expect(crossedTarget({ x: 1.05, z: 2.33 }, { x: 1.32, z: 1.72 }, target)).toBe(true);
+  });
+
+  it("ignores a step that passes wide of the target", () => {
+    expect(crossedTarget({ x: 0, z: 3 }, { x: 0, z: 1 }, target)).toBe(false);
+  });
+
+  it("ignores a step that stops short", () => {
+    expect(crossedTarget({ x: 1.2, z: 4 }, { x: 1.2, z: 3 }, target)).toBe(false);
+  });
+
+  it("handles standing still", () => {
+    expect(crossedTarget({ x: 1.2, z: 2.1 }, { x: 1.2, z: 2.1 }, target)).toBe(true);
+    expect(crossedTarget({ x: 3, z: 3 }, { x: 3, z: 3 }, target)).toBe(false);
   });
 });
 

@@ -4,6 +4,7 @@ import { SPAWN } from "@/data/store-layout";
 import {
   type FloorVec,
   type Progress,
+  crossedTarget,
   isStuck,
   startProgress,
   steerToward,
@@ -86,6 +87,8 @@ const STOP = {
 interface TargetProgress {
   version: number;
   state: Progress;
+  /** Where the visitor was last frame, to catch a step that jumps over the target. */
+  last: FloorVec;
 }
 
 /**
@@ -100,14 +103,13 @@ function autoSteer(
 ) {
   const pos = { x: playerState.position.x, z: playerState.position.z };
   const dist = Math.hypot(target.x - pos.x, target.z - pos.z);
-  const state =
-    prev && prev.version === moveTarget.version
-      ? trackProgress(prev.state, dist, dt)
-      : startProgress(dist);
-  const progress: TargetProgress = { version: moveTarget.version, state };
+  const same = prev !== null && prev.version === moveTarget.version;
+  const state = same ? trackProgress(prev.state, dist, dt) : startProgress(dist);
+  const progress: TargetProgress = { version: moveTarget.version, state, last: pos };
 
   camera.getWorldDirection(camForward);
-  const stick = steerToward(pos, target, { x: camForward.x, z: camForward.z });
+  const crossed = same && crossedTarget(prev.last, pos, target);
+  const stick = crossed ? null : steerToward(pos, target, { x: camForward.x, z: camForward.z });
   if (!stick || isStuck(state)) {
     clearMoveTarget(stick ? "stuck" : "arrived");
     return { stick: null, progress };
