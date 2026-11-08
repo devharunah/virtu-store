@@ -15,11 +15,14 @@ import { Environment, KeyboardControls, PerformanceMonitor } from "@react-three/
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useEffect, useState } from "react";
+import * as THREE from "three";
+import { FloorPicker } from "./FloorPicker";
 import { BASE_FOV, FollowCamera } from "./FollowCamera";
 import { Interaction } from "./Interaction";
 import { Player } from "./Player";
 import { StoreScene } from "./StoreScene";
 import { KEYBOARD_MAP } from "./controls";
+import { moveTarget } from "./move-target";
 import { playerState } from "./player-state";
 
 const debug =
@@ -62,7 +65,21 @@ export default function Experience() {
           camera={{ fov: BASE_FOV, near: 0.05, far: 60 }}
           gl={{ antialias: true, powerPreference: "high-performance" }}
           onCreated={(state) => {
-            if (debug) Object.assign(window, { __virtu: state });
+            if (!debug) return;
+            // __virtuProject: a world point → CSS pixels in the canvas (e2e clicks the floor with it).
+            const project = (x: number, y: number, z: number) => {
+              const v = new THREE.Vector3(x, y, z).project(state.camera);
+              const r = state.gl.domElement.getBoundingClientRect();
+              return {
+                x: r.left + ((v.x + 1) / 2) * r.width,
+                y: r.top + ((1 - v.y) / 2) * r.height,
+              };
+            };
+            Object.assign(window, {
+              __virtu: state,
+              __virtuProject: project,
+              __virtuMove: moveTarget,
+            });
           }}
         >
           <PerformanceMonitor
@@ -85,6 +102,7 @@ export default function Experience() {
           <Suspense fallback={null}>
             <Physics debug={debug}>
               <StoreScene />
+              <FloorPicker />
               <Player />
             </Physics>
             <Interaction />

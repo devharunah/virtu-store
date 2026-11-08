@@ -21,7 +21,7 @@ test("a visitor walks in, picks a phone and completes a simulated checkout", asy
   await page.keyboard.down("KeyW");
   await expect
     .poll(() => page.evaluate(() => window.__virtuUI?.getState().nearSlotId ?? null), {
-      timeout: 45_000, // software WebGL under parallel load can walk slowly
+      timeout: 120_000, // software WebGL under parallel load can walk slowly
     })
     .not.toBeNull();
   await page.keyboard.up("KeyW");
