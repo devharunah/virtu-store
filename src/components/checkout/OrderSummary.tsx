@@ -36,6 +36,7 @@ export default function OrderSummary({
                 {line.product.name} <span className="text-neutral-500">× {line.qty}</span>
               </p>
               <p className="text-sm text-neutral-600">
+                {line.shop ? `${line.shop.name} · ` : ""}
                 {line.colour.label} · {line.variant.label}
               </p>
             </div>

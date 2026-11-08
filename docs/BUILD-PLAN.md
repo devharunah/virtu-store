@@ -7,7 +7,7 @@ A polished, shareable prototype (LinkedIn/TikTok) where a visitor can:
 
 1. open the site → 2. enter a 3D phone showroom → 3. walk around as a character → 4. approach a phone → 5. inspect it in 3D (rotate/zoom) → 6. choose **storage + colour** → 7. add to cart → 8. finish a **simulated** checkout (mock MoMo/Airtel Money + boda delivery request).
 
-**Out of scope for v1** (same as the PDF): real payments, vendor dashboard, auth, inventory, Supabase.
+**Out of scope for v1** (same as the PDF): real payments, vendor dashboard, auth, inventory, Supabase. (v2 added seller shops and auth on Firebase; see "v2" below.)
 
 ## What already exists
 | Path | What |
@@ -181,8 +181,23 @@ See `docs/realism-plan.html`.
 
 ---
 
+## v2: from the LinkedIn feedback
+Prompted by the comments on the first demo post.
+- [x] Click or tap the floor to walk there (`FloorPicker`, `src/lib/steer.ts`).
+- [x] Seller shops on Firebase (Auth + Firestore) instead of Supabase. See `docs/FIREBASE-SETUP.md`.
+  - `/sell`: sign in with Google or email, then name the shop, paint it (presets plus wall,
+    accent and floor colours), and choose phones and prices, all with a live 3D preview.
+  - `/stores`: the directory, with three demo shops plus sellers' shops.
+  - `/stores/[slug]`: walk into any shop. Its name is on the counter, back wall and signboard, and
+    its prices flow through the panel, bag and checkout.
+  - `firestore.rules`: one shop per account, owner-only writes, validated fields;
+    `pnpm rules:check` attacks them on the emulator.
+- Swapping furniture (tables, chairs, counters) is deferred. They are baked into the single
+  `shop_shell.glb` mesh with the lightmap. Swapping needs `blender/shop.py` to export them as
+  separate GLBs and a re-bake.
+
 ## Later (v2+)
 - Aisle 2: sneakers (Sketchfab, licence-checked) using `variantKind: "size"`
-- Supabase: products, orders, delivery requests; admin to edit prices
+- Orders and delivery requests stored per shop; seller order inbox
 - Real payments via a Ugandan aggregator (e.g. Flutterwave/Pesapal MoMo APIs), only after legal and business review
 - Multiplayer presence (see other shoppers), AR "view in your room" via `<model-viewer>`

@@ -10,14 +10,27 @@ export const CART_STORAGE_VERSION = 1;
 export const MIN_QTY = 1;
 export const MAX_QTY = 5;
 
-/** What the cart stores. Prices are never stored; they come from the catalogue at read time. */
+/**
+ * The seller shop a line was added from, with the base price that shop showed (whole UGX).
+ * Seller prices live in Firestore, which the bag can't wait on, so this one price is a snapshot
+ * (labelled indicative like every price here). Lines without a shop are from the VIRTU.STORE
+ * showroom and are priced from the catalogue at read time, as before.
+ */
+export interface CartShop {
+  slug: string;
+  name: string;
+  basePrice: number;
+}
+
+/** What the cart stores. */
 export interface CartLine {
-  /** `${productId}:${colourId}:${variantId}` */
+  /** `${productId}:${colourId}:${variantId}`, plus `@${shop.slug}` for a seller's shop. */
   key: string;
   productId: string;
   colourId: string;
   variantId: string;
   qty: number;
+  shop?: CartShop;
 }
 
 export interface AddItemInput {
@@ -26,7 +39,31 @@ export interface AddItemInput {
   variantId: string;
   /** Defaults to 1. */
   qty?: number;
+  /** The seller shop it comes from. Omit for the VIRTU.STORE showroom. */
+  shop?: CartShop;
 }
+
+/** Cart shop snapshots must look like this, whatever storage hands back. */
+const SHOP_SLUG = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
+// Same range as shop-schema.ts (kept here so the cart doesn't pull zod into every page).
+const MIN_SHOP_PRICE = 50_000;
+const MAX_SHOP_PRICE = 20_000_000;
+
+const isCartShop = (v: unknown): v is CartShop => {
+  if (typeof v !== "object" || v === null) return false;
+  const { slug, name, basePrice } = v as Record<string, unknown>;
+  return (
+    typeof slug === "string" &&
+    SHOP_SLUG.test(slug) &&
+    typeof name === "string" &&
+    name.length > 0 &&
+    name.length <= 40 &&
+    typeof basePrice === "number" &&
+    Number.isInteger(basePrice) &&
+    basePrice >= MIN_SHOP_PRICE &&
+    basePrice <= MAX_SHOP_PRICE
+  );
+};
 
 /** A cart line joined with its catalogue data and priced. */
 export interface PricedCartLine extends CartLine {
@@ -56,8 +93,28 @@ export interface CartState {
   toggleCart: () => void;
 }
 
-export const lineKey = (productId: string, colourId: string, variantId: string) =>
-  `${productId}:${colourId}:${variantId}`;
+export const lineKey = (
+  productId: string,
+  colourId: string,
+  variantId: string,
+  shopSlug?: string,
+) => `${productId}:${colourId}:${variantId}${shopSlug ? `@${shopSlug}` : ""}`;
+
+/** A new line object, with the shop key present only for seller lines. */
+const makeLine = (
+  productId: string,
+  colourId: string,
+  variantId: string,
+  qty: number,
+  shop: CartShop | undefined,
+): CartLine => ({
+  key: lineKey(productId, colourId, variantId, shop?.slug),
+  productId,
+  colourId,
+  variantId,
+  qty,
+  ...(shop ? { shop } : {}),
+});
 
 const clampQty = (qty: number) => Math.min(MAX_QTY, Math.max(0, Math.floor(qty)));
 
@@ -83,7 +140,7 @@ export function relocateLine(
   const colourId = next.colourId ?? line.colourId;
   const variantId = next.variantId ?? line.variantId;
   if (!isKnown(line.productId, colourId, variantId)) return [...lines];
-  const newKey = lineKey(line.productId, colourId, variantId);
+  const newKey = lineKey(line.productId, colourId, variantId, line.shop?.slug);
   if (newKey === key) return [...lines];
 
   const target = lines.find((l) => l.key === newKey);
@@ -102,7 +159,9 @@ export function priceLines(lines: readonly CartLine[]): PricedCartLine[] {
     if (product === undefined) continue;
     const colour = product.colours.find((c) => c.id === line.colourId);
     const variant = product.variants.find((v) => v.id === line.variantId);
-    const price = unitPrice(product, line.variantId);
+    const price = line.shop
+      ? variant && line.shop.basePrice + variant.priceDelta
+      : unitPrice(product, line.variantId);
     if (colour === undefined || variant === undefined || price === undefined) continue;
     priced.push({
       ...line,
@@ -122,13 +181,15 @@ function sanitizeStoredLines(value: unknown): CartLine[] {
   const byKey = new Map<string, CartLine>();
   for (const raw of value as unknown[]) {
     if (typeof raw !== "object" || raw === null) continue;
-    const { productId, colourId, variantId, qty } = raw as Record<string, unknown>;
+    const { productId, colourId, variantId, qty, shop } = raw as Record<string, unknown>;
     if (typeof productId !== "string" || typeof colourId !== "string") continue;
     if (typeof variantId !== "string" || typeof qty !== "number" || !Number.isFinite(qty)) continue;
-    const key = lineKey(productId, colourId, variantId);
-    const total = clampQty((byKey.get(key)?.qty ?? 0) + qty);
+    const source = shop === undefined ? undefined : isCartShop(shop) ? shop : null;
+    if (source === null) continue; // a tampered or broken shop snapshot
+    const line = makeLine(productId, colourId, variantId, 0, source);
+    const total = clampQty((byKey.get(line.key)?.qty ?? 0) + qty);
     if (total <= 0) continue;
-    byKey.set(key, { key, productId, colourId, variantId, qty: total });
+    byKey.set(line.key, { ...line, qty: total });
   }
   return [...byKey.values()];
 }
@@ -152,18 +213,24 @@ export const useCart = create<CartState>()(
       lines: [],
       isOpen: false,
 
-      addItem: ({ productId, colourId, variantId, qty = 1 }) => {
+      addItem: ({ productId, colourId, variantId, qty = 1, shop }) => {
         ensureCartHydrated();
         const add = clampQty(qty);
         if (add <= 0 || !isKnown(productId, colourId, variantId)) return;
-        const key = lineKey(productId, colourId, variantId);
+        if (shop !== undefined && !isCartShop(shop)) return;
+        const line = makeLine(productId, colourId, variantId, add, shop);
         const lines = get().lines;
-        const existing = lines.find((l) => l.key === key);
+        const existing = lines.find((l) => l.key === line.key);
         set({
           lines:
             existing === undefined
-              ? [...lines, { key, productId, colourId, variantId, qty: add }]
-              : lines.map((l) => (l.key === key ? { ...l, qty: clampQty(l.qty + add) } : l)),
+              ? [...lines, line]
+              : lines.map((l) =>
+                  l.key === line.key
+                    ? // a fresh snapshot wins: the shop may have changed its price
+                      { ...l, qty: clampQty(l.qty + add), ...(shop ? { shop } : {}) }
+                    : l,
+                ),
         });
       },
 

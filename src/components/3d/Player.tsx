@@ -83,6 +83,20 @@ const STOP = {
   joystick: { x: 0, y: 0 },
 };
 
+const NO_KEYS: Record<Control, boolean> = {
+  forward: false,
+  backward: false,
+  leftward: false,
+  rightward: false,
+  run: false,
+  jump: false,
+};
+
+const isTyping = () => {
+  const el = document.activeElement as HTMLElement | null;
+  return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+};
+
 /** Progress toward one particular click (`version` tells a new click from the old one). */
 interface TargetProgress {
   version: number;
@@ -143,7 +157,8 @@ export function Player() {
       e.setMovement(STOP);
       return;
     }
-    const k = getKeys();
+    // Typing in a form (the seller dashboard sits beside a live preview) must not walk.
+    const k = isTyping() ? NO_KEYS : getKeys();
     const stick = useJoystickStore.getState().joysticks["default"];
     const jumpButton = useButtonStore.getState().buttons["jump"] ?? false;
     const manual = k.forward || k.backward || k.leftward || k.rightward || !!stick?.active;

@@ -1,11 +1,13 @@
 "use client";
 
 import { FLOOR_BOX, WALLS } from "@/data/store-layout";
+import type { ShopTheme } from "@/lib/shop-schema";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { ShopSign } from "./ShopSign";
 
 export const SHOP_MODELS = {
   shell: "/models/shop/shop_shell.glb",
@@ -86,7 +88,33 @@ function dress(root: THREE.Object3D, maps: Maps) {
   });
 }
 
-function Shell() {
+/** The materials a seller's theme repaints, and which theme colour each takes. */
+const THEMED: Record<string, keyof ShopTheme> = {
+  PaintWall: "wall",
+  PaintAccent: "accent",
+  TileFloor: "floor",
+};
+
+/**
+ * Gives this shell its own copies of the themed materials. `scene.clone` shares materials with
+ * the cached GLTF, so without this one shop's paint would leak into the next shop opened.
+ */
+function ownThemedMaterials(root: THREE.Object3D) {
+  const copies = new Map<string, THREE.MeshStandardMaterial>();
+  root.traverse((obj) => {
+    if (!(obj instanceof THREE.Mesh)) return;
+    const own = (m: THREE.Material) => {
+      if (!(m instanceof THREE.MeshStandardMaterial) || !(m.name in THEMED)) return m;
+      const copy = copies.get(m.name) ?? m.clone();
+      copies.set(m.name, copy);
+      return copy;
+    };
+    obj.material = Array.isArray(obj.material) ? obj.material.map(own) : own(obj.material);
+  });
+  return copies;
+}
+
+function Shell({ theme }: { theme: ShopTheme }) {
   const { scene } = useGLTF(SHOP_MODELS.shell);
   const glass = useGLTF(SHOP_MODELS.glass).scene;
   const raw = useTexture({ ...TEXTURES, lightmap: LIGHTMAP });
@@ -103,11 +131,19 @@ function Shell() {
     }),
     [raw],
   );
-  const shell = useMemo(() => {
+  const { shell, themed } = useMemo(() => {
     const s = scene.clone(true);
     dress(s, maps);
-    return s;
+    return { shell: s, themed: ownThemedMaterials(s) };
   }, [scene, maps]);
+
+  // Repaint in place when the theme changes (the dashboard preview does this live).
+  useEffect(() => {
+    for (const [name, material] of themed) {
+      const key = THEMED[name];
+      if (key) material.color.set(theme[key]);
+    }
+  }, [themed, theme]);
   const glassPanes = useMemo(() => {
     const g = glass.clone(true);
     dress(g, maps);
@@ -145,10 +181,12 @@ function ShopColliders() {
   );
 }
 
-export function ShopShell() {
+/** `sign`: the seller's shop name for the signboard, or null to keep the baked VIRTU board. */
+export function ShopShell({ theme, sign }: { theme: ShopTheme; sign: string | null }) {
   return (
     <group>
-      <Shell />
+      <Shell theme={theme} />
+      {sign !== null && <ShopSign name={sign} accent={theme.accent} />}
       <Fan />
       <ShopColliders />
     </group>

@@ -56,3 +56,6 @@ playwright-report/
 
 # raw source assets (photos, Meshy downloads, bakes): regenerate, never commit
 /blender/source/
+
+# Firebase emulator logs
+*-debug.log
