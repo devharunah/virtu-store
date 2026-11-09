@@ -20,9 +20,11 @@ export default function StorePage() {
         <div className="flex items-center gap-3">
           <span className="hidden rounded-full bg-white/80 px-3 py-1 text-xs text-neutral-600 backdrop-blur sm:inline">
             <span className="pointer-coarse:hidden">
-              WASD to walk · Shift to run · drag to look · E to inspect
+              Click the floor or WASD to walk · drag to look · E to inspect
             </span>
-            <span className="hidden pointer-coarse:inline">Joystick to walk · drag to look</span>
+            <span className="hidden pointer-coarse:inline">
+              Tap the floor to walk · drag to look
+            </span>
           </span>
           <CartButton />
         </div>

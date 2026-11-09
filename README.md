@@ -6,7 +6,7 @@ A walk-in 3D phone shop for Ugandan shoppers. Walk a character through a virtual
 
 ## The journey
 1. `/`: the landing page → **Enter the store**
-2. `/store`: walk with **WASD / arrows** (Shift to run, Space to jump) or the on-screen **joystick** on phones; drag to look
+2. `/store`: **click or tap the floor** to walk there, or walk with **WASD / arrows** (Shift to run, Space to jump) or the on-screen **joystick** on phones; drag to look
 3. Walk up to a phone, then press **E**, tap the prompt, or click the phone to open it: spin it, zoom, pick colour and storage, and the price updates
 4. **Add to bag** → the bag drawer (change storage or quantity, remove) → **Checkout**
 5. `/checkout`: name, Ugandan phone number, Kampala division or outside Kampala, payment method → mock "approve on your phone" step → order number and boda ETA. No real payment is taken.

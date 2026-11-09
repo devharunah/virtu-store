@@ -25,7 +25,7 @@ test("the visitor walks with the keyboard and can inspect a phone", async ({ pag
   await page.keyboard.down("KeyW");
   await expect
     .poll(() => page.evaluate(() => window.__virtuUI?.getState().nearSlotId ?? null), {
-      timeout: 45_000, // software WebGL under parallel load can walk slowly
+      timeout: 120_000, // software WebGL under parallel load can walk slowly
     })
     .not.toBeNull();
   await page.keyboard.up("KeyW");
@@ -45,6 +45,41 @@ test("the visitor walks with the keyboard and can inspect a phone", async ({ pag
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test("clicking the floor walks the visitor there", async ({ page }) => {
+  const errors: string[] = [];
+  await openShowroom(page, errors);
+
+  const start = await page.evaluate(() => window.__virtuPlayer?.position.z ?? 0);
+  // A clear spot inside the shop's front, ahead and to the right of the spawn point.
+  const target = { x: 1.2, z: 2.0 };
+  // Project with the camera as it is now (it eases into place after load), and click again
+  // until the click lands.
+  await expect(async () => {
+    const screen = await page.evaluate(
+      ({ x, z }) => window.__virtuProject?.(x, 0, z) ?? null,
+      target,
+    );
+    if (!screen) throw new Error("debug projection missing");
+    await page.mouse.click(screen.x, screen.y);
+    await expect
+      .poll(() => page.evaluate(() => window.__virtuMove?.point ?? null), { timeout: 3_000 })
+      .not.toBeNull();
+  }).toPass({ timeout: 30_000 });
+
+  // The visitor walks in, and the target clears on arrival.
+  await expect
+    .poll(() => page.evaluate(() => window.__virtuMove?.point ?? null), { timeout: 120_000 })
+    .toBeNull();
+  expect(await page.evaluate(() => window.__virtuMove?.ended ?? null)).toBe("arrived");
+  const end = await page.evaluate(() => window.__virtuPlayer?.position ?? null);
+  expect(end).not.toBeNull();
+  expect(end?.z ?? 0).toBeLessThan(start - 1);
+  // Arrival is judged at 0.25 m, but software WebGL can drop to ~0.5 fps here, and the input that
+  // stops the visitor lands a frame later, so it may coast up to a frame's walk past the target.
+  expect(Math.hypot((end?.x ?? 0) - target.x, (end?.z ?? 0) - target.z)).toBeLessThan(1.5);
   expect(errors).toEqual([]);
 });
 
