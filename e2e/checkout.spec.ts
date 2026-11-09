@@ -126,9 +126,7 @@ test("cash on delivery is preselected and skips the phone prompt", async ({ page
   await expect(page.getByText(/Estimated delivery: 1–2 days\./)).toBeVisible();
 });
 
-test("an autofilled phone number with no input event still places the order", async ({
-  page,
-}) => {
+test("an autofilled phone number with no input event still places the order", async ({ page }) => {
   await seedCart(page);
   await page.goto("/checkout");
 
