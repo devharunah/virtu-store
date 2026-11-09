@@ -1,11 +1,11 @@
 "use client";
 
-import { getProduct } from "@/data/products";
 import { INTERACT_RADIUS } from "@/data/store-layout";
 import type { DisplaySlot } from "@/lib/display-slots";
 import { nearestSlot } from "@/lib/display-slots";
 import { formatUGX } from "@/lib/format-ugx";
 import { shopBasePrice } from "@/lib/shop-pricing";
+import { resolveShopProduct } from "@/lib/shop-products";
 import type { ShopConfig } from "@/lib/shop-schema";
 import { useUiStore } from "@/store/ui-store";
 import { Html } from "@react-three/drei";
@@ -24,12 +24,14 @@ export function Interaction({ slots, shop }: { slots: DisplaySlot[]; shop: ShopC
   useFrame(() => {
     if (!playerState.ready) return;
     const hit = nearestSlot(playerState.position, slots, INTERACT_RADIUS);
-    const colourId = hit ? getProduct(hit.productId)?.colours[hit.colourIndex]?.id : undefined;
+    const colourId = hit
+      ? resolveShopProduct(shop, hit.productId)?.colours[hit.colourIndex]?.id
+      : undefined;
     useUiStore.getState().setNear(hit?.id ?? null, hit?.productId ?? null, colourId ?? null);
   });
 
   const slot = slots.find((s) => s.id === nearSlotId);
-  const product = slot ? getProduct(slot.productId) : undefined;
+  const product = slot ? resolveShopProduct(shop, slot.productId) : undefined;
   if (!slot || !product || inspecting) return null;
 
   const colour = product.colours[slot.colourIndex];

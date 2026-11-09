@@ -2,13 +2,13 @@
 
 import { getDemoShop } from "@/data/demo-shops";
 import { firebaseConfigured } from "@/lib/firebase";
-import type { ShopConfig } from "@/lib/shop-schema";
+import type { ShopListing } from "@/lib/shop-storage";
 import { listShops } from "@/lib/shops-repo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ShopCard } from "./ShopCard";
 
-type Load = { status: "loading" } | { status: "ready"; shops: ShopConfig[] } | { status: "error" };
+type Load = { status: "loading" } | { status: "ready"; shops: ShopListing[] } | { status: "error" };
 
 /** Shops opened by sellers (Firestore). Hidden entirely when Firebase isn't configured. */
 export function SellerShopsList() {

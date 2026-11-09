@@ -2,15 +2,16 @@
 
 import { useShop } from "@/components/shop/ShopContext";
 import { VIRTU_SHOP } from "@/data/demo-shops";
-import { getProduct } from "@/data/products";
 import { formatUGX } from "@/lib/format-ugx";
 import { unitPrice } from "@/lib/pricing";
 import { shopBasePrice, shopUnitPrice } from "@/lib/shop-pricing";
+import { resolveShopProduct } from "@/lib/shop-products";
 import { lineKey, useCart } from "@/store/cart-store";
 import { selectionFor, useUiStore } from "@/store/ui-store";
 import { Check, ShoppingBag, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { PhotoGallery } from "./PhotoGallery";
 
 const InspectViewer = dynamic(() => import("./InspectViewer"), {
   ssr: false,
@@ -29,12 +30,15 @@ export function ProductPanel() {
   const openCart = useCart((s) => s.openCart);
   const [added, setAdded] = useState<string | null>(null);
   const shop = useShop();
+  // Which phone is showing its photos; any other phone opens on its 3D model.
+  const [photosOf, setPhotosOf] = useState<string | null>(null);
 
-  const product = inspectingId ? getProduct(inspectingId) : undefined;
+  const product = inspectingId ? resolveShopProduct(shop, inspectingId) : undefined;
+  const productId = product?.id;
 
   useEffect(() => {
-    if (product) closeButton.current?.focus();
-  }, [product]);
+    if (productId) closeButton.current?.focus();
+  }, [productId]);
 
   if (!product) return null;
 
@@ -46,10 +50,28 @@ export function ProductPanel() {
   const price =
     (isSeller ? shopUnitPrice(shop, product, sel.variantId) : unitPrice(product, sel.variantId)) ??
     product.basePrice;
+  const photos = product.photos ?? [];
+  const firstPhoto = photos[0];
   const cartShop =
     sellerBase === undefined
       ? undefined
-      : { slug: shop.slug, name: shop.name, basePrice: sellerBase };
+      : {
+          slug: shop.slug,
+          name: shop.name,
+          basePrice: sellerBase,
+          // A seller-added phone isn't in the catalogue, so the bag keeps what it needs to show it.
+          ...(product.custom && {
+            phone: {
+              name: product.name,
+              brand: product.brand,
+              colours: product.colours,
+              variants: product.variants,
+              ...(firstPhoto !== undefined && { photo: firstPhoto }),
+            },
+          }),
+        };
+  const view = photosOf === product.id && photos.length > 0 ? "photos" : "3d";
+  const showPhotos = view === "photos";
   const addedKey = lineKey(product.id, sel.colourId, sel.variantId, cartShop?.slug);
 
   const addToBag = () => {
@@ -82,10 +104,39 @@ export function ProductPanel() {
         className="relative m-0 flex max-h-[100dvh] w-full max-w-4xl p-0 text-neutral-900 flex-col overflow-hidden rounded-t-3xl bg-[#f6f4ef] shadow-2xl sm:max-h-[90dvh] sm:flex-row sm:rounded-3xl"
       >
         <div className="relative h-[46dvh] shrink-0 sm:h-auto sm:min-h-[520px] sm:flex-1">
-          <InspectViewer url={product.modelUrl} colour={colour?.hex} />
-          <p className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-xs text-neutral-500">
-            Drag to rotate · scroll or pinch to zoom
-          </p>
+          {showPhotos ? (
+            <PhotoGallery photos={photos} name={product.name} />
+          ) : (
+            <>
+              <InspectViewer url={product.modelUrl} colour={colour?.hex} />
+              <p className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-xs text-neutral-500">
+                {product.custom
+                  ? "Display model · see Photos for the real phone"
+                  : "Drag to rotate · scroll or pinch to zoom"}
+              </p>
+            </>
+          )}
+          {photos.length > 0 && (
+            <fieldset className="absolute left-3 top-3 flex rounded-full bg-white/90 p-1 text-sm font-medium shadow">
+              <legend className="sr-only">View</legend>
+              {(
+                [
+                  ["3d", "3D model"],
+                  ["photos", `Photos (${photos.length})`],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={view === id}
+                  onClick={() => setPhotosOf(id === "photos" ? product.id : null)}
+                  className="rounded-full px-3 py-1.5 text-neutral-700 aria-pressed:bg-neutral-900 aria-pressed:text-white"
+                >
+                  {label}
+                </button>
+              ))}
+            </fieldset>
+          )}
         </div>
 
         <div className="flex flex-col gap-5 overflow-y-auto p-5 sm:w-[360px] sm:p-7">
@@ -152,21 +203,27 @@ export function ProductPanel() {
             </div>
           </fieldset>
 
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl bg-white/70 p-4 text-sm">
-            {(
-              [
-                ["Screen", product.specs.screen],
-                ["Battery", product.specs.battery],
-                ["Camera", product.specs.camera],
-                ["RAM", product.specs.ram],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k}>
-                <dt className="text-neutral-500">{k}</dt>
-                <dd className="font-medium">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          {product.specs ? (
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl bg-white/70 p-4 text-sm">
+              {(
+                [
+                  ["Screen", product.specs.screen],
+                  ["Battery", product.specs.battery],
+                  ["Camera", product.specs.camera],
+                  ["RAM", product.specs.ram],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-neutral-500">{k}</dt>
+                  <dd className="font-medium">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="rounded-2xl bg-white/70 p-4 text-sm text-neutral-600">
+              Listed by {shop.name}. Ask the shop about specs and condition.
+            </p>
+          )}
 
           <div className="mt-auto flex flex-col gap-2">
             <button

@@ -3,8 +3,14 @@ rules_version = '2';
 // Seller shops for VIRTU.STORE. Mirrors src/lib/shop-schema.ts (zod), which the app checks
 // first; these rules are what actually protect the data, because the web config is public.
 //
-//   shops/{slug}   public read; created and edited only by its owner
-//   owners/{uid}   { slug } — one shop per account; the slug never changes
+//   shops/{slug}                 public read; created and edited only by its owner
+//   shops/{slug}/phones/{id}     one phone's details: a seller-added phone ("c1".."c4"), or the
+//                                photos of a catalogue phone (id = its product id)
+//   owners/{uid}                 { slug } — one shop per account; the slug never changes
+//
+// Why phones live in their own documents: Firestore stops evaluating a request's rules after
+// 1,000 expressions, and checking lists of maps inside lists (phones → colours, storage,
+// photos) in the shop document goes over that. Each phone document gets its own budget.
 //
 // PRODUCT_IDS must match src/data/products.ts (a Jest test checks this).
 // Deploy: firebase deploy --only firestore:rules   (see docs/FIREBASE-SETUP.md)
@@ -16,29 +22,17 @@ service cloud.firestore {
       return v is string && v.matches('^#[0-9a-fA-F]{6}$');
     }
 
-    function validTheme(t) {
-      return t is map
-        && t.keys().hasOnly(['wall', 'accent', 'floor'])
-        && t.keys().hasAll(['wall', 'accent', 'floor'])
-        && hex(t.wall) && hex(t.accent) && hex(t.floor);
+    function catalogueId(id) {
+      // PRODUCT_IDS
+      return id in ['galaxy-a17', 'galaxy-a56', 'iphone-17', 'galaxy-s25-ultra', 'iphone-17-pro-max'];
     }
 
-    function validItem(i) {
-      return i is map
-        && i.keys().hasOnly(['productId', 'price'])
-        && i.keys().hasAll(['productId', 'price'])
-        // PRODUCT_IDS
-        && i.productId in ['galaxy-a17', 'galaxy-a56', 'iphone-17', 'galaxy-s25-ultra', 'iphone-17-pro-max']
-        && i.price is int && i.price >= 50000 && i.price <= 20000000;
+    function price(p) {
+      return p is int && p >= 50000 && p <= 20000000;
     }
 
-    function validStock(s) {
-      return s is list && s.size() >= 1 && s.size() <= 5
-        && validItem(s[0])
-        && (s.size() < 2 || validItem(s[1]))
-        && (s.size() < 3 || validItem(s[2]))
-        && (s.size() < 4 || validItem(s[3]))
-        && (s.size() < 5 || validItem(s[4]));
+    function text(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
     }
 
     // Mirrors CLOUDINARY_URL_PATTERN in src/lib/image-url.ts (a Jest test checks this).
@@ -48,12 +42,52 @@ service cloud.firestore {
         && v.matches('^https://res[.]cloudinary[.]com/[a-z0-9_-]{1,64}/image/upload/[A-Za-z0-9_.,/-]{1,300}$');
     }
 
-    function text(v, min, max) {
-      return v is string && v.size() >= min && v.size() <= max;
+    function validTheme(t) {
+      return t is map
+        && t.keys().hasOnly(['wall', 'accent', 'floor'])
+        && t.keys().hasAll(['wall', 'accent', 'floor'])
+        && hex(t.wall) && hex(t.accent) && hex(t.floor);
+    }
+
+    // ---- The shop document ----
+
+    function validItem(i) {
+      return i is map
+        && i.keys().hasOnly(['productId', 'price'])
+        && i.keys().hasAll(['productId', 'price'])
+        && catalogueId(i.productId)
+        && price(i.price);
+    }
+
+    function validStock(s) {
+      return s is list && s.size() <= 5
+        && (s.size() < 1 || validItem(s[0]))
+        && (s.size() < 2 || validItem(s[1]))
+        && (s.size() < 3 || validItem(s[2]))
+        && (s.size() < 4 || validItem(s[3]))
+        && (s.size() < 5 || validItem(s[4]));
+    }
+
+    // The shop's own phones, summarised for the directory; the details are in phones/{id}.
+    function validSummary(p) {
+      return p is map
+        && p.keys().hasOnly(['id', 'name', 'price'])
+        && p.keys().hasAll(['id', 'name', 'price'])
+        && p.id in ['c1', 'c2', 'c3', 'c4']
+        && p.name is string && p.name.size() >= 2 && p.name.size() <= 40
+        && p.price is int && p.price >= 50000 && p.price <= 20000000;
+    }
+
+    function validSummaries(l) {
+      return l is list && l.size() <= 4
+        && (l.size() < 1 || validSummary(l[0]))
+        && (l.size() < 2 || validSummary(l[1]))
+        && (l.size() < 3 || validSummary(l[2]))
+        && (l.size() < 4 || validSummary(l[3]));
     }
 
     function validShop(d, slug) {
-      return d.keys().hasOnly(['slug', 'name', 'location', 'ownerUid', 'theme', 'bannerUrl', 'stock', 'createdAt', 'updatedAt'])
+      return d.keys().hasOnly(['slug', 'name', 'location', 'ownerUid', 'theme', 'bannerUrl', 'stock', 'customPhones', 'createdAt', 'updatedAt'])
         && d.keys().hasAll(['slug', 'name', 'location', 'ownerUid', 'theme', 'stock', 'createdAt', 'updatedAt'])
         && d.slug == slug
         && slug.matches('^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$')
@@ -62,11 +96,75 @@ service cloud.firestore {
         && validTheme(d.theme)
         && (!('bannerUrl' in d) || imageUrl(d.bannerUrl))
         && validStock(d.stock)
+        && (!('customPhones' in d) || validSummaries(d.customPhones))
+        // at least one phone, from the catalogue or the seller's own
+        && d.stock.size() + ('customPhones' in d ? d.customPhones.size() : 0) >= 1
         && d.updatedAt == request.time;
+    }
+
+    // ---- Phone documents ----
+
+    // Up to 5 uploaded photos (MAX_PHOTOS in src/lib/shop-schema.ts).
+    function photos(p) {
+      return p is list && p.size() <= 5
+        && (p.size() < 1 || imageUrl(p[0]))
+        && (p.size() < 2 || imageUrl(p[1]))
+        && (p.size() < 3 || imageUrl(p[2]))
+        && (p.size() < 4 || imageUrl(p[3]))
+        && (p.size() < 5 || imageUrl(p[4]));
+    }
+
+    function validStorage(o) {
+      return o is map
+        && o.keys().hasOnly(['label', 'priceDelta'])
+        && o.keys().hasAll(['label', 'priceDelta'])
+        && text(o.label, 1, 12)
+        && o.priceDelta is int && o.priceDelta >= 0 && o.priceDelta <= 5000000;
+    }
+
+    function validColour(o) {
+      return o is map
+        && o.keys().hasOnly(['label', 'hex'])
+        && o.keys().hasAll(['label', 'hex'])
+        && text(o.label, 1, 20)
+        && hex(o.hex);
+    }
+
+    // A phone the seller added themselves (customPhoneSchema in src/lib/shop-schema.ts).
+    function validCustom(c) {
+      return c.keys().hasOnly(['name', 'brand', 'price', 'storage', 'colours', 'photos', 'updatedAt'])
+        && c.keys().hasAll(['name', 'brand', 'price', 'storage', 'colours', 'photos', 'updatedAt'])
+        && text(c.name, 2, 40)
+        && text(c.brand, 2, 20)
+        && price(c.price)
+        && c.storage is list && c.storage.size() >= 1 && c.storage.size() <= 3
+        && validStorage(c.storage[0])
+        && (c.storage.size() < 2 || validStorage(c.storage[1]))
+        && (c.storage.size() < 3 || validStorage(c.storage[2]))
+        && c.colours is list && c.colours.size() >= 1 && c.colours.size() <= 4
+        && validColour(c.colours[0])
+        && (c.colours.size() < 2 || validColour(c.colours[1]))
+        && (c.colours.size() < 3 || validColour(c.colours[2]))
+        && (c.colours.size() < 4 || validColour(c.colours[3]))
+        && photos(c.photos)
+        && c.updatedAt == request.time;
+    }
+
+    // Real photos of a catalogue phone the shop sells.
+    function validPhotoSet(p) {
+      return p.keys().hasOnly(['photos', 'updatedAt'])
+        && p.keys().hasAll(['photos', 'updatedAt'])
+        && photos(p.photos)
+        && p.updatedAt == request.time;
     }
 
     function signedIn() {
       return request.auth != null;
+    }
+
+    function ownsShop(slug) {
+      return signedIn()
+        && get(/databases/$(database)/documents/shops/$(slug)).data.ownerUid == request.auth.uid;
     }
 
     match /shops/{slug} {
@@ -89,6 +187,18 @@ service cloud.firestore {
         && validShop(request.resource.data, slug);
 
       allow delete: if false;
+
+      match /phones/{phoneId} {
+        allow read: if true;
+
+        // Only the shop's owner, after the shop exists; ids are "c1".."c4" or a catalogue phone.
+        allow create, update: if ownsShop(slug)
+          && ((phoneId.matches('^c[1-4]$') && validCustom(request.resource.data))
+            || (catalogueId(phoneId) && validPhotoSet(request.resource.data)));
+
+        // Removing a phone (or its photos) from the shop.
+        allow delete: if ownsShop(slug);
+      }
     }
 
     match /owners/{uid} {

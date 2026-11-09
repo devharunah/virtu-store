@@ -1,9 +1,10 @@
 "use client";
 
 import { VIRTU_SHOP } from "@/data/demo-shops";
-import { getProduct, products } from "@/data/products";
+import { products } from "@/data/products";
 import { type Fixture, PEGBOARD, SHELF_STOCK } from "@/data/store-layout";
 import { slotLocalX } from "@/lib/display-slots";
+import { resolveShopProduct } from "@/lib/shop-products";
 import type { ShopConfig } from "@/lib/shop-schema";
 import { useUiStore } from "@/store/ui-store";
 import type { Product } from "@/types/product";
@@ -109,14 +110,14 @@ function DisplayPhone({
   );
 }
 
-function FixturePhones({ fixture }: { fixture: Fixture }) {
+function FixturePhones({ fixture, shop }: { fixture: Fixture; shop: ShopConfig }) {
   const phones = fixture.phones ?? [];
   const spacing = fixture.spacing ?? 0.4;
   const scale = fixture.phoneScale ?? 1.4;
   return (
     <>
       {phones.map((slot, i) => {
-        const product = getProduct(slot.productId);
+        const product = resolveShopProduct(shop, slot.productId);
         if (!product) return null;
         const slotId = `${fixture.id}:${i}`;
         const x = slot.x ?? slotLocalX(i, phones.length, spacing);
@@ -137,11 +138,11 @@ function FixturePhones({ fixture }: { fixture: Fixture }) {
   );
 }
 
-function FixtureView({ fixture }: { fixture: Fixture }) {
+function FixtureView({ fixture, shop }: { fixture: Fixture; shop: ShopConfig }) {
   return (
     <group position={fixture.position} rotation-y={fixture.rotationY ?? 0}>
       {fixture.model && <Model url={fixture.model} />}
-      <FixturePhones fixture={fixture} />
+      <FixturePhones fixture={fixture} shop={shop} />
       {fixture.collider && (
         <RigidBody type="fixed" colliders={false}>
           <CuboidCollider args={fixture.collider.halfExtents} position={fixture.collider.center} />
@@ -224,7 +225,7 @@ export function StoreScene({ shop, fixtures }: { shop: ShopConfig; fixtures: Fix
         banner={shop.bannerUrl}
       />
       {fixtures.map((f) => (
-        <FixtureView key={f.id} fixture={f} />
+        <FixtureView key={f.id} fixture={f} shop={shop} />
       ))}
       <ShelfStock />
       <PegboardPacks />
@@ -232,7 +233,8 @@ export function StoreScene({ shop, fixtures }: { shop: ShopConfig; fixtures: Fix
   );
 }
 
-// Warm the cache for every phone model the shop shows.
+// Warm the cache for every catalogue phone model. The generic model for seller-added phones
+// (24 KB) loads only in shops that have one.
 for (const url of new Set(products.map((p) => p.modelUrl))) {
   useGLTF.preload(url);
 }

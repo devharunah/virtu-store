@@ -15,6 +15,10 @@ interface Window {
     ended: "arrived" | "stuck" | "manual" | "ui" | null;
   };
   __virtuUI?: {
-    getState: () => { nearSlotId: string | null; inspectingId: string | null };
+    getState: () => {
+      nearSlotId: string | null;
+      inspectingId: string | null;
+      openInspect: (productId: string, colourId?: string) => void;
+    };
   };
 }

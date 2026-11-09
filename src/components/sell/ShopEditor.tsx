@@ -13,6 +13,7 @@ import {
 import { SlugTakenError, getMyShop, isSlugFree, saveShop } from "@/lib/shops-repo";
 import Link from "next/link";
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { CustomPhoneEditor } from "./CustomPhoneEditor";
 import { ImageUpload } from "./ImageUpload";
 import { StockPicker } from "./StockPicker";
 import { ThemePicker } from "./ThemePicker";
@@ -169,8 +170,19 @@ export function ShopEditor({ uid }: { uid: string }) {
         />
         <FieldError id="banner-error" message={errors.bannerUrl} />
 
-        <StockPicker stock={draft.stock} onChange={(stock) => setDraft((d) => ({ ...d, stock }))} />
+        <StockPicker
+          stock={draft.stock}
+          onChange={(stock) => setDraft((d) => ({ ...d, stock }))}
+          folder={`virtu/shops/${uid}`}
+        />
         <FieldError id="stock-error" message={errors.stock} />
+
+        <CustomPhoneEditor
+          phones={draft.customPhones}
+          onChange={(customPhones) => setDraft((d) => ({ ...d, customPhones }))}
+          folder={`virtu/shops/${uid}`}
+        />
+        <FieldError id="custom-phones-error" message={errors.customPhones} />
 
         <div className="flex flex-wrap items-center gap-3">
           <button

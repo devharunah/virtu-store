@@ -68,3 +68,40 @@ test("selling explains itself when no Firebase project is connected", async ({ p
   await expect(page.getByRole("heading", { name: "Open your shop in 3D" })).toBeVisible();
   await expect(page.getByRole("note")).toContainText("Seller accounts aren’t configured");
 });
+
+test("a seller's own phone opens as a display model and goes in the bag", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+
+  // The generic model goes on the counters alongside the iPhones.
+  const generic = page.waitForResponse(
+    (r) => r.url().endsWith("/models/phones/generic-phone.glb"),
+    {
+      timeout: 90_000,
+    },
+  );
+  await page.goto("/stores/wandegeya-iworld?debug");
+  expect((await generic).ok()).toBe(true);
+  await expect(page.getByTestId("scene-loader")).toBeHidden({ timeout: 90_000 });
+
+  await page.evaluate(() => window.__virtuUI?.getState().openInspect("custom-c1"));
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "K1 Lite" })).toBeVisible();
+  await expect(dialog.getByText("Kabira · Seller's phone")).toBeVisible();
+  await expect(dialog.getByTestId("inspect-price")).toHaveText("UGX 480,000");
+  await dialog.getByRole("button", { name: /^128 GB/ }).click();
+  await expect(dialog.getByTestId("inspect-price")).toHaveText("UGX 540,000");
+
+  await dialog.getByRole("button", { name: /^Add to bag/ }).click();
+  await dialog.getByRole("button", { name: "View bag and check out" }).click();
+  const bag = page.getByRole("dialog", { name: /Your bag/ });
+  await expect(bag.getByText("K1 Lite", { exact: true })).toBeVisible();
+  await expect(bag.getByText("Lake Blue · 128 GB")).toBeVisible();
+  await expect(bag.getByText("from Wandegeya iWorld")).toBeVisible();
+
+  // The bag survives a reload (the phone's snapshot is stored with the line).
+  await page.reload();
+  await page.goto("/checkout");
+  await expect(page.getByText(/K1 Lite/).first()).toBeVisible();
+  expect(errors).toEqual([]);
+});

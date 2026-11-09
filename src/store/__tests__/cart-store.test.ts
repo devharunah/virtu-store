@@ -319,3 +319,50 @@ describe("priced lines", () => {
     expect(result.current.count).toBe(3);
   });
 });
+
+describe("a seller's own phone", () => {
+  const shop = {
+    slug: "pioneer-mall-shop",
+    name: "Pioneer Mall Shop",
+    basePrice: 550_000,
+    phone: {
+      name: "Spark 30",
+      brand: "Tecno",
+      colours: [{ id: "c0", label: "Black", hex: "#111111" }],
+      variants: [
+        { id: "s0", label: "128 GB", priceDelta: 0 },
+        { id: "s1", label: "256 GB", priceDelta: 80_000 },
+      ],
+    },
+  };
+
+  it("goes in the bag and prices from its snapshot", () => {
+    cart().addItem({ productId: "custom-c1", colourId: "c0", variantId: "s1", shop });
+    const [line] = priceLines(cart().lines);
+    expect(line?.product.name).toBe("Spark 30");
+    expect(line?.unitPrice).toBe(630_000);
+  });
+
+  it("is refused without a snapshot or with an unknown option", () => {
+    const bare = { slug: shop.slug, name: shop.name, basePrice: shop.basePrice };
+    cart().addItem({ productId: "custom-c1", colourId: "c0", variantId: "s0", shop: bare });
+    cart().addItem({ productId: "custom-c1", colourId: "c9", variantId: "s0", shop });
+    expect(cart().lines).toEqual([]);
+  });
+
+  it("refuses a tampered snapshot", () => {
+    const tampered = {
+      ...shop,
+      phone: { ...shop.phone, variants: [{ id: "s0", label: "x", priceDelta: -500_000 }] },
+    };
+    cart().addItem({ productId: "custom-c1", colourId: "c0", variantId: "s0", shop: tampered });
+    expect(cart().lines).toEqual([]);
+  });
+
+  it("can switch storage", () => {
+    cart().addItem({ productId: "custom-c1", colourId: "c0", variantId: "s0", shop });
+    const key = cart().lines[0]?.key ?? "";
+    cart().changeVariant(key, "s1");
+    expect(cart().lines[0]?.variantId).toBe("s1");
+  });
+});

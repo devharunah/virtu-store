@@ -160,13 +160,17 @@ const FILL_ORDER = ["counter-back", "counter-left", "counter-right"] as const;
  * phone on the turning hero stand, and fills the counters round-robin, cycling colourways so
  * repeats look different.
  */
-export function buildFixtures(productIds: readonly string[]): Fixture[] {
+export function buildFixtures(
+  productIds: readonly string[],
+  /** How many colourways a phone has (seller-added phones aren't in the catalogue). */
+  colourCount: (id: string) => number = (id) => getProduct(id)?.colours.length ?? 1,
+): Fixture[] {
   if (productIds.length === 0 || productIds.join(",") === CURATED_ORDER) return FIXTURES;
 
   let n = 0;
   const next = (): PhoneSlot => {
     const id = productIds[n % productIds.length] ?? productIds[0] ?? "";
-    const colours = getProduct(id)?.colours.length ?? 1;
+    const colours = Math.max(1, colourCount(id));
     const slot = { productId: id, colourIndex: Math.floor(n / productIds.length) % colours };
     n += 1;
     return slot;

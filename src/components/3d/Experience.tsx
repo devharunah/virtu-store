@@ -11,6 +11,7 @@ import { Loader } from "@/components/ui/Loader";
 import { TouchControls } from "@/components/ui/TouchControls";
 import { ROOM, buildFixtures } from "@/data/store-layout";
 import { resolveDisplaySlots } from "@/lib/display-slots";
+import { shopProducts } from "@/lib/shop-products";
 import type { ShopConfig } from "@/lib/shop-schema";
 import { useCart } from "@/store/cart-store";
 import { useUiStore } from "@/store/ui-store";
@@ -57,8 +58,18 @@ export interface ExperienceProps {
 export default function Experience({ shop }: ExperienceProps) {
   const [dpr, setDpr] = useState(1.5);
   // Only a change of which phones are sold rebuilds the counters (colour edits don't).
-  const stockKey = shop.stock.map((s) => s.productId).join(",");
-  const fixtures = useMemo(() => buildFixtures(stockKey.split(",")), [stockKey]);
+  // Each phone id with its colour count, e.g. "galaxy-a17#3,custom-c1#2".
+  const stockKey = shopProducts(shop)
+    .map((p) => `${p.id}#${p.colours.length}`)
+    .join(",");
+  const fixtures = useMemo(() => {
+    const entries = stockKey === "" ? [] : stockKey.split(",").map((e) => e.split("#"));
+    const counts = new Map(entries.map(([id, n]) => [id ?? "", Number(n)]));
+    return buildFixtures(
+      entries.map(([id]) => id ?? ""),
+      (id) => counts.get(id) ?? 1,
+    );
+  }, [stockKey]);
   const slots = useMemo(() => resolveDisplaySlots(fixtures), [fixtures]);
   const inspecting = useUiStore((s) => s.inspectingId !== null);
   useInteractionKeys();
@@ -123,8 +134,8 @@ export default function Experience({ shop }: ExperienceProps) {
           <FollowCamera />
         </Canvas>
       </KeyboardControls>
-      <TouchControls />
       <ShopProvider value={shop}>
+        <TouchControls />
         <ProductPanel />
       </ShopProvider>
       <Loader />

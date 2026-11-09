@@ -140,14 +140,14 @@ describe("firestore.rules", () => {
   const rules = readFileSync(join(process.cwd(), "firestore.rules"), "utf8");
 
   it("allows exactly the catalogue's phones", () => {
-    const list = /PRODUCT_IDS\s*\n\s*&& i\.productId in \[([^\]]+)\]/.exec(rules)?.[1] ?? "";
+    const list = /PRODUCT_IDS\s*\n\s*return id in \[([^\]]+)\]/.exec(rules)?.[1] ?? "";
     const ids = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
     expect(ids).toEqual(products.map((p) => p.id).sort());
   });
 
   it("uses the same price range as the schema", () => {
-    expect(rules).toContain(`i.price >= ${MIN_PRICE}`);
-    expect(rules).toContain(`i.price <= ${MAX_PRICE}`);
+    expect(rules).toContain(`p >= ${MIN_PRICE}`);
+    expect(rules).toContain(`p <= ${MAX_PRICE}`);
   });
 
   it("accepts the same image URLs as src/lib/image-url.ts", () => {
@@ -157,5 +157,53 @@ describe("firestore.rules", () => {
     for (const url of IMAGE_URL_SAMPLES) {
       expect([url, rulesPattern.test(url)]).toEqual([url, CLOUDINARY_URL_PATTERN.test(url)]);
     }
+  });
+});
+
+describe("customPhones", () => {
+  const phone = {
+    id: "c1",
+    brand: "Tecno",
+    name: "Spark 30",
+    price: 550_000,
+    storage: [{ label: "128 GB", priceDelta: 0 }],
+    colours: [{ label: "Black", hex: "#111111" }],
+    photos: [],
+  };
+  const shop = { ...valid, stock: [], customPhones: [phone] };
+
+  it("lets a shop sell only its own phones", () => {
+    expect(parseShop(shop).success).toBe(true);
+  });
+
+  it("still needs at least one phone", () => {
+    const result = parseShop({ ...valid, stock: [], customPhones: [] });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(["stock"]);
+  });
+
+  it.each([
+    ["a bad id", { id: "x1" }],
+    ["a price typo", { price: 55 }],
+    ["no storage", { storage: [] }],
+    ["four storage options", { storage: Array(4).fill({ label: "1 TB", priceDelta: 0 }) }],
+    ["a negative step", { storage: [{ label: "128 GB", priceDelta: -1 }] }],
+    ["no colours", { colours: [] }],
+    ["a bad colour", { colours: [{ label: "Red", hex: "red" }] }],
+    ["a foreign photo", { photos: ["https://evil.example/a.png"] }],
+    ["six photos", { photos: Array(6).fill(IMAGE_URL_SAMPLES[0]) }],
+  ])("refuses %s", (_label, patch) => {
+    expect(parseShop({ ...shop, customPhones: [{ ...phone, ...patch }] }).success).toBe(false);
+  });
+
+  it("refuses the same id twice and more than four phones", () => {
+    expect(parseShop({ ...shop, customPhones: [phone, phone] }).success).toBe(false);
+    const five = ["c1", "c2", "c3", "c4", "c5"].map((id) => ({ ...phone, id }));
+    expect(parseShop({ ...shop, customPhones: five }).success).toBe(false);
+  });
+
+  it("accepts photos on a catalogue phone", () => {
+    const stock = [{ productId: "galaxy-a17", price: 650_000, photos: [IMAGE_URL_SAMPLES[0]] }];
+    expect(parseShop({ ...valid, stock }).success).toBe(true);
   });
 });

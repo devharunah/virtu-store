@@ -61,6 +61,8 @@ Each entry in `PHONES` is data only, approximating a real phone (iPhone 17 Pro M
 
 **Adding a phone:** copy a dict in `PHONES`, change the numbers and the id, re-run the script, then optimise (§4). Add the product to `src/data/products.ts`.
 
+**The generic phone:** `GENERIC_PHONE` in the same script is an unbranded model (no logo) for phones sellers add themselves. It keeps the same material names, so `Body` takes the seller's colour and `Screen` the wallpaper. It is not in `products.ts`; `src/lib/shop-products.ts` points seller phones at it.
+
 **Through the MCP** you can say, for example, *"Using blender/phones.py, add a 6th phone with a diagonal dual-camera island, then show me a viewport screenshot."* Claude edits the dict, runs the code in your open Blender, and screenshots the result.
 
 ### The Kampala arcade shop (`blender/make_signs.py` + `blender/shop.py`)

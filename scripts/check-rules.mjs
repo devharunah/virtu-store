@@ -65,12 +65,18 @@ async function expectOutcome(label, shouldPass, fn) {
 const alice = client("alice");
 const bob = client("bob");
 const anon = client("anon");
+const carol = client("carol");
 const a = await createUserWithEmailAndPassword(
   alice.auth,
   `alice-${run}@virtu.test`,
   "rules-test-1",
 );
 const b = await createUserWithEmailAndPassword(bob.auth, `bob-${run}@virtu.test`, "rules-test-1");
+const c = await createUserWithEmailAndPassword(
+  carol.auth,
+  `carol-${run}@virtu.test`,
+  "rules-test-1",
+);
 const aliceSlug = `alice-${run}`;
 
 await expectOutcome("alice opens her shop", true, () => claim(alice.db, aliceSlug, a.user.uid));
@@ -139,6 +145,132 @@ await expectOutcome("a banner from another site is refused", false, () =>
 );
 await expectOutcome("a banner that isn't a string is refused", false, () =>
   claim(bob.db, `banner-${run}`, b.user.uid, { bannerUrl: { url: "x" } }),
+);
+const PHOTO = "https://res.cloudinary.com/virtu/image/upload/v1/virtu/shops/p.webp";
+const CATALOGUE = [
+  "galaxy-a17",
+  "galaxy-a56",
+  "iphone-17",
+  "galaxy-s25-ultra",
+  "iphone-17-pro-max",
+];
+const carolSlug = `carol-${run}`;
+const phoneRef = (db, id, slug = carolSlug) => doc(db, "shops", slug, "phones", id);
+const ownPhone = (extra = {}) => ({
+  name: "N".repeat(40),
+  brand: "B".repeat(20),
+  price: 550000,
+  storage: [
+    { label: "128 GB", priceDelta: 0 },
+    { label: "256 GB", priceDelta: 80000 },
+    { label: "512 GB", priceDelta: 5000000 },
+  ],
+  colours: ["#111111", "#222222", "#333333", "#444444"].map((hex) => ({
+    label: "C".repeat(20),
+    hex,
+  })),
+  photos: Array(5).fill(PHOTO),
+  updatedAt: serverTimestamp(),
+  ...extra,
+});
+
+// The biggest documents must stay inside Firestore's 1,000-expression rules budget.
+await expectOutcome("the biggest allowed shop is accepted", true, () =>
+  claim(carol.db, carolSlug, c.user.uid, {
+    name: "M".repeat(40),
+    location: "L".repeat(40),
+    bannerUrl: PHOTO,
+    stock: CATALOGUE.map((productId) => ({ productId, price: 900000 })),
+    customPhones: ["c1", "c2", "c3", "c4"].map((id) => ({
+      id,
+      name: "N".repeat(40),
+      price: 550000,
+    })),
+  }),
+);
+await expectOutcome("the biggest own phone is accepted", true, () =>
+  setDoc(phoneRef(carol.db, "c4"), ownPhone()),
+);
+await expectOutcome("five photos of a catalogue phone are accepted", true, () =>
+  setDoc(phoneRef(carol.db, "iphone-17"), {
+    photos: Array(5).fill(PHOTO),
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("anyone can read a shop's phones", true, () => getDoc(phoneRef(anon.db, "c4")));
+await expectOutcome("bob can't add a phone to carol's shop", false, () =>
+  setDoc(phoneRef(bob.db, "c1"), ownPhone()),
+);
+await expectOutcome("bob can't delete carol's phone", false, async () => {
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(phoneRef(bob.db, "c4"));
+});
+await expectOutcome("a fifth own phone (c5) is refused", false, () =>
+  setDoc(phoneRef(carol.db, "c5"), ownPhone()),
+);
+await expectOutcome("photos of an unknown phone are refused", false, () =>
+  setDoc(phoneRef(carol.db, "nokia"), { photos: [PHOTO], updatedAt: serverTimestamp() }),
+);
+await expectOutcome("an own phone with a typo price is refused", false, () =>
+  setDoc(phoneRef(carol.db, "c1"), ownPhone({ price: 5 })),
+);
+await expectOutcome("an own phone with a foreign photo is refused", false, () =>
+  setDoc(phoneRef(carol.db, "c1"), ownPhone({ photos: ["https://evil.example/x.png"] })),
+);
+await expectOutcome("six photos are refused", false, () =>
+  setDoc(phoneRef(carol.db, "iphone-17"), {
+    photos: Array(6).fill(PHOTO),
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("extra fields on an own phone are refused", false, () =>
+  setDoc(phoneRef(carol.db, "c1"), ownPhone({ verified: true })),
+);
+await expectOutcome("a negative storage step is refused", false, () =>
+  setDoc(
+    phoneRef(carol.db, "c1"),
+    ownPhone({ storage: [{ label: "128 GB", priceDelta: -100000 }] }),
+  ),
+);
+await expectOutcome("four storage options are refused", false, () =>
+  setDoc(
+    phoneRef(carol.db, "c1"),
+    ownPhone({ storage: Array(4).fill({ label: "128 GB", priceDelta: 0 }) }),
+  ),
+);
+await expectOutcome("carol removes her own phone", true, async () => {
+  const { deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(phoneRef(carol.db, "c4"));
+});
+await expectOutcome("a shop of only the seller's own phones is accepted", true, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    stock: [],
+    customPhones: [{ id: "c1", name: "Spark 30", price: 550000 }],
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("a shop with no phones at all is refused", false, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    stock: [],
+    customPhones: [],
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("a fifth phone summary is refused", false, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    customPhones: ["c1", "c2", "c3", "c4", "c5"].map((id) => ({
+      id,
+      name: "Spark",
+      price: 550000,
+    })),
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("photos in the shop document are refused", false, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    stock: [{ productId: "galaxy-a17", price: 700000, photos: [PHOTO] }],
+    updatedAt: serverTimestamp(),
+  }),
 );
 await expectOutcome("bob can't claim alice's slug", false, () =>
   claim(bob.db, aliceSlug, b.user.uid),

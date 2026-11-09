@@ -49,6 +49,16 @@
       "triangles": 3390,
       "materials": ["Body", "Bezel", "Screen", "LensRing", "Glass", "Flash", "Logo"],
       "default_color": "#E8732C"
+    },
+    {
+      "id": "generic-phone",
+      "name": "Seller's phone",
+      "tier": "Seller's phone",
+      "file": "/models/phones/generic-phone.glb",
+      "dimensions_mm": [75.0, 160.0, 8.0],
+      "triangles": 2234,
+      "materials": ["Body", "Bezel", "Screen", "Glass", "LensRing", "Flash"],
+      "default_color": "#2A2C30"
     }
   ],
   "fixtures": [
