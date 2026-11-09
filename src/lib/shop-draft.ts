@@ -1,5 +1,6 @@
 import { products } from "@/data/products";
 import { DEFAULT_THEME } from "@/data/themes";
+import { isCloudinaryUrl } from "./image-url";
 import { type ShopConfig, type ShopTheme, shopSchema, slugify } from "./shop-schema";
 
 /**
@@ -19,11 +20,15 @@ export interface ShopDraft {
   slugLocked: boolean;
   location: string;
   theme: ShopTheme;
+  /** Empty when the shop has no banner. */
+  bannerUrl: string;
   stock: StockDraft[];
 }
 
 /** Field → first error message, for showing next to the inputs. */
-export type DraftErrors = Partial<Record<"name" | "slug" | "location" | "theme" | "stock", string>>;
+export type DraftErrors = Partial<
+  Record<"name" | "slug" | "location" | "theme" | "bannerUrl" | "stock", string>
+>;
 
 export function draftFromShop(shop: ShopConfig | null): ShopDraft {
   return {
@@ -32,6 +37,7 @@ export function draftFromShop(shop: ShopConfig | null): ShopDraft {
     slugLocked: shop !== null,
     location: shop?.location ?? "",
     theme: shop?.theme ?? DEFAULT_THEME,
+    bannerUrl: shop?.bannerUrl ?? "",
     // Every catalogue phone gets a row; the shop's own phones keep their order, on top.
     stock: [
       ...(shop?.stock ?? []).map((s) => ({
@@ -63,6 +69,7 @@ const toCandidate = (draft: ShopDraft, ownerUid: string) => ({
   location: draft.location.trim(),
   ownerUid,
   theme: draft.theme,
+  ...(draft.bannerUrl !== "" && { bannerUrl: draft.bannerUrl }),
   stock: draft.stock
     .filter((s) => s.on)
     .map((s) => ({ productId: s.productId, price: parsePrice(s.price) })),
@@ -82,6 +89,7 @@ export function draftToShop(
         field === "slug" ||
         field === "location" ||
         field === "theme" ||
+        field === "bannerUrl" ||
         field === "stock") &&
       errors[field] === undefined
     ) {
@@ -106,6 +114,7 @@ export function previewShop(draft: ShopDraft): ShopConfig {
     location: draft.location.trim() || "Kampala",
     ownerUid: "preview",
     theme: draft.theme,
+    ...(isCloudinaryUrl(draft.bannerUrl) && { bannerUrl: draft.bannerUrl }),
     stock:
       stock.length > 0 ? stock : products.map((p) => ({ productId: p.id, price: p.basePrice })),
   };

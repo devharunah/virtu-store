@@ -8,15 +8,17 @@ explains that seller accounts aren't configured. That is how CI runs.
 
 | Collection | Document | Who can read | Who can write |
 |---|---|---|---|
-| `shops` | `{slug}`: name, location, ownerUid, theme, stock, timestamps | everyone | its owner (create, update); nobody deletes |
+| `shops` | `{slug}`: name, location, ownerUid, theme, optional bannerUrl, stock, timestamps | everyone | its owner (create, update); nobody deletes |
 | `owners` | `{uid}`: `{ slug }` | that user | that user, once, together with their shop |
 
 - One shop per account.
 - A shop's link (`/stores/{slug}`) never changes once opened.
 - `firestore.rules` enforces the same shape as `src/lib/shop-schema.ts`: known phones only, whole
-  UGX between 50,000 and 20,000,000, `#RRGGBB` colours, 2–40 character names, and no extra
-  fields.
-- A Jest test keeps the rules' phone list and price range in step with the catalogue.
+  UGX between 50,000 and 20,000,000, `#RRGGBB` colours, 2–40 character names, image URLs on
+  Cloudinary only, and no extra fields.
+- A Jest test keeps the rules' phone list, price range and image-URL pattern in step with the app.
+- Images (banners, phone photos) are stored on Cloudinary, not Firebase: see
+  `docs/CLOUDINARY-SETUP.md`.
 
 The web config below ships to every browser by design. **The rules are what protect the data**,
 so deploy them before sharing the link.

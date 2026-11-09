@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   // Generates route types into .next/types, so a typo in a `Link href` or a
   // `router.push` is a compile error rather than a 404 someone finds later.
   typedRoutes: true,
+  // Seller banners and phone photos, uploaded to Cloudinary (docs/CLOUDINARY-SETUP.md).
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/*/image/upload/**" },
+    ],
+  },
   experimental: {
     // Types the environment variables the dev server loaded.
     typedEnv: true,

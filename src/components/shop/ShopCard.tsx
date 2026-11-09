@@ -3,8 +3,9 @@ import { formatUGX } from "@/lib/format-ugx";
 import { shopFromPrice } from "@/lib/shop-pricing";
 import type { ShopConfig } from "@/lib/shop-schema";
 import Link from "next/link";
+import { ShopFront } from "./ShopFront";
 
-/** A shop in the directory: its colours as a little shopfront, name, area, phones and price. */
+/** A shop in the directory: its banner (or its colours as a little shopfront), name, area, phones and price. */
 export function ShopCard({ shop }: { shop: ShopConfig }) {
   const phones = shop.stock
     .map((s) => getProduct(s.productId)?.name)
@@ -15,22 +16,7 @@ export function ShopCard({ shop }: { shop: ShopConfig }) {
       className="group flex flex-col overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       data-testid="shop-card"
     >
-      <div
-        className="relative h-28"
-        style={{ backgroundColor: shop.theme.wall }}
-        aria-hidden="true"
-      >
-        <div
-          className="absolute inset-x-6 top-4 rounded-md px-3 py-1.5 text-center text-xs font-black uppercase tracking-wide text-white"
-          style={{ backgroundColor: shop.theme.accent }}
-        >
-          {shop.name}
-        </div>
-        <div
-          className="absolute inset-x-0 bottom-0 h-8"
-          style={{ backgroundColor: shop.theme.floor }}
-        />
-      </div>
+      <ShopFront shop={shop} />
       <div className="flex flex-1 flex-col gap-1 p-4">
         <h2 className="font-semibold">{shop.name}</h2>
         <p className="text-sm text-neutral-500">{shop.location}</p>

@@ -22,6 +22,8 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 - Data: static TypeScript catalogue; seller shops in Firebase (Auth + Firestore, client SDK
   only, loaded lazily). Without the `NEXT_PUBLIC_FIREBASE_*` variables the app runs on the demo
   shops alone. See `docs/FIREBASE-SETUP.md`
+- Images: seller banners and phone photos upload from the browser to Cloudinary (unsigned preset);
+  only URLs are stored. See `docs/CLOUDINARY-SETUP.md`
 - Validation: zod (`src/lib/shop-schema.ts`), mirrored by `firestore.rules`
 - Package manager: pnpm, pinned in `packageManager`
 - Hosting: Vercel (GitHub integration: preview per PR, production on `main`)

@@ -218,7 +218,11 @@ function PegboardPacks() {
 export function StoreScene({ shop, fixtures }: { shop: ShopConfig; fixtures: Fixture[] }) {
   return (
     <group>
-      <ShopShell theme={shop.theme} sign={shop.slug === VIRTU_SHOP.slug ? null : shop.name} />
+      <ShopShell
+        theme={shop.theme}
+        sign={shop.slug === VIRTU_SHOP.slug ? null : shop.name}
+        banner={shop.bannerUrl}
+      />
       {fixtures.map((f) => (
         <FixtureView key={f.id} fixture={f} />
       ))}

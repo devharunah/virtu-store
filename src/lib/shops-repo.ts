@@ -68,7 +68,7 @@ export async function saveShop(input: ShopConfig): Promise<ShopConfig> {
   const shop = parsed.data;
 
   const { db } = await getFirebase();
-  const { doc, runTransaction, serverTimestamp } = await import("firebase/firestore");
+  const { deleteField, doc, runTransaction, serverTimestamp } = await import("firebase/firestore");
   const shopRef = doc(db, SHOPS, shop.slug);
   const ownerRef = doc(db, OWNERS, shop.ownerUid);
 
@@ -82,7 +82,12 @@ export async function saveShop(input: ShopConfig): Promise<ShopConfig> {
       throw new SlugTakenError(shop.slug);
     }
     if (existing.exists()) {
-      tx.update(shopRef, { ...shop, updatedAt: serverTimestamp() });
+      // update() merges, so a removed banner has to be deleted explicitly.
+      tx.update(shopRef, {
+        ...shop,
+        bannerUrl: shop.bannerUrl ?? deleteField(),
+        updatedAt: serverTimestamp(),
+      });
     } else {
       tx.set(shopRef, { ...shop, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
       tx.set(ownerRef, { slug: shop.slug });

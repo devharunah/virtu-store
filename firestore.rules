@@ -41,18 +41,26 @@ service cloud.firestore {
         && (s.size() < 5 || validItem(s[4]));
     }
 
+    // Mirrors CLOUDINARY_URL_PATTERN in src/lib/image-url.ts (a Jest test checks this).
+    function imageUrl(v) {
+      return v is string && v.size() <= 400
+        // IMAGE_URL
+        && v.matches('^https://res[.]cloudinary[.]com/[a-z0-9_-]{1,64}/image/upload/[A-Za-z0-9_.,/-]{1,300}$');
+    }
+
     function text(v, min, max) {
       return v is string && v.size() >= min && v.size() <= max;
     }
 
     function validShop(d, slug) {
-      return d.keys().hasOnly(['slug', 'name', 'location', 'ownerUid', 'theme', 'stock', 'createdAt', 'updatedAt'])
+      return d.keys().hasOnly(['slug', 'name', 'location', 'ownerUid', 'theme', 'bannerUrl', 'stock', 'createdAt', 'updatedAt'])
         && d.keys().hasAll(['slug', 'name', 'location', 'ownerUid', 'theme', 'stock', 'createdAt', 'updatedAt'])
         && d.slug == slug
         && slug.matches('^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$')
         && text(d.name, 2, 40)
         && text(d.location, 2, 40)
         && validTheme(d.theme)
+        && (!('bannerUrl' in d) || imageUrl(d.bannerUrl))
         && validStock(d.stock)
         && d.updatedAt == request.time;
     }
