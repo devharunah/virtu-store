@@ -6,15 +6,18 @@
  * expose `window.__virtu` (renderer), `window.__virtuUI` (UI store), `window.__virtuPlayer`.
  */
 import { ProductPanel } from "@/components/products/ProductPanel";
+import { ShopProvider } from "@/components/shop/ShopContext";
 import { Loader } from "@/components/ui/Loader";
 import { TouchControls } from "@/components/ui/TouchControls";
-import { ROOM } from "@/data/store-layout";
+import { ROOM, buildFixtures } from "@/data/store-layout";
+import { resolveDisplaySlots } from "@/lib/display-slots";
+import type { ShopConfig } from "@/lib/shop-schema";
 import { useCart } from "@/store/cart-store";
 import { useUiStore } from "@/store/ui-store";
 import { Environment, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { FloorPicker } from "./FloorPicker";
 import { BASE_FOV, FollowCamera } from "./FollowCamera";
@@ -46,8 +49,17 @@ function useInteractionKeys() {
   }, []);
 }
 
-export default function Experience() {
+export interface ExperienceProps {
+  /** The shop to render: its paint, signboard, phones and prices. */
+  shop: ShopConfig;
+}
+
+export default function Experience({ shop }: ExperienceProps) {
   const [dpr, setDpr] = useState(1.5);
+  // Only a change of which phones are sold rebuilds the counters (colour edits don't).
+  const stockKey = shop.stock.map((s) => s.productId).join(",");
+  const fixtures = useMemo(() => buildFixtures(stockKey.split(",")), [stockKey]);
+  const slots = useMemo(() => resolveDisplaySlots(fixtures), [fixtures]);
   const inspecting = useUiStore((s) => s.inspectingId !== null);
   useInteractionKeys();
 
@@ -101,18 +113,20 @@ export default function Experience() {
 
           <Suspense fallback={null}>
             <Physics debug={debug}>
-              <StoreScene />
+              <StoreScene shop={shop} fixtures={fixtures} />
               <FloorPicker />
               <Player />
             </Physics>
-            <Interaction />
+            <Interaction slots={slots} shop={shop} />
           </Suspense>
 
           <FollowCamera />
         </Canvas>
       </KeyboardControls>
       <TouchControls />
-      <ProductPanel />
+      <ShopProvider value={shop}>
+        <ProductPanel />
+      </ShopProvider>
       <Loader />
     </div>
   );

@@ -172,6 +172,7 @@ function CartLineRow({ line }: { line: PricedCartLine }) {
             <p className="text-sm text-neutral-600">
               {colour.label} · {variant.label}
             </p>
+            {line.shop && <p className="text-xs text-neutral-500">from {line.shop.name}</p>}
           </div>
           <p className="shrink-0 font-semibold">{formatUGX(line.lineTotal)}</p>
         </div>
@@ -188,7 +189,7 @@ function CartLineRow({ line }: { line: PricedCartLine }) {
           >
             {product.variants.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.label} · {formatUGX(product.basePrice + v.priceDelta)}
+                {v.label} · {formatUGX((line.shop?.basePrice ?? product.basePrice) + v.priceDelta)}
               </option>
             ))}
           </select>

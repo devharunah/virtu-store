@@ -3,6 +3,7 @@
  * Geometry numbers live in `shop-layout.json`, which blender/shop.py reads too, so the baked
  * 3D model, the physics colliders and the phone slots can never drift apart.
  */
+import { getProduct, products } from "./products";
 import shop from "./shop-layout.json";
 
 export type Vec3 = [number, number, number];
@@ -146,6 +147,48 @@ export const FIXTURES: Fixture[] = [
     }),
   ),
 ];
+
+/** The order `FIXTURES` was curated for: the full catalogue. */
+const CURATED_ORDER = products.map((p) => p.id).join(",");
+
+/** Display slots in the order they get filled for a custom shop: back counter first (seen first). */
+const FILL_ORDER = ["counter-back", "counter-left", "counter-right"] as const;
+
+/**
+ * The shop's fixtures for a seller's stock. The full catalogue in catalogue order gets the
+ * hand-curated `FIXTURES`. Any other stock keeps every counter and slot position, puts the first
+ * phone on the turning hero stand, and fills the counters round-robin, cycling colourways so
+ * repeats look different.
+ */
+export function buildFixtures(productIds: readonly string[]): Fixture[] {
+  if (productIds.length === 0 || productIds.join(",") === CURATED_ORDER) return FIXTURES;
+
+  let n = 0;
+  const next = (): PhoneSlot => {
+    const id = productIds[n % productIds.length] ?? productIds[0] ?? "";
+    const colours = getProduct(id)?.colours.length ?? 1;
+    const slot = { productId: id, colourIndex: Math.floor(n / productIds.length) % colours };
+    n += 1;
+    return slot;
+  };
+
+  const filled = new Map<string, PhoneSlot[]>();
+  for (const id of FILL_ORDER) {
+    const template = FIXTURES.find((f) => f.id === id)?.phones ?? [];
+    filled.set(
+      id,
+      template.map((t) => ({ ...next(), ...(t.x === undefined ? {} : { x: t.x }) })),
+    );
+  }
+
+  return FIXTURES.map((f) => {
+    if (f.id === "hero-stand") {
+      return { ...f, phones: [{ productId: productIds[0] ?? "", colourIndex: 0 }] };
+    }
+    const phones = filled.get(f.id);
+    return phones ? { ...f, phones } : f;
+  });
+}
 
 /** A static box the visitor cannot walk through (world space: centre + half extents). */
 export interface WallBox {

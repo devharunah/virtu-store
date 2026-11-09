@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// Seller shops for VIRTU.STORE. Mirrors src/lib/shop-schema.ts (zod), which the app checks
+// first; these rules are what actually protect the data, because the web config is public.
+//
+//   shops/{slug}   public read; created and edited only by its owner
+//   owners/{uid}   { slug } — one shop per account; the slug never changes
+//
+// PRODUCT_IDS must match src/data/products.ts (a Jest test checks this).
+// Deploy: firebase deploy --only firestore:rules   (see docs/FIREBASE-SETUP.md)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function hex(v) {
+      return v is string && v.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function validTheme(t) {
+      return t is map
+        && t.keys().hasOnly(['wall', 'accent', 'floor'])
+        && t.keys().hasAll(['wall', 'accent', 'floor'])
+        && hex(t.wall) && hex(t.accent) && hex(t.floor);
+    }
+
+    function validItem(i) {
+      return i is map
+        && i.keys().hasOnly(['productId', 'price'])
+        && i.keys().hasAll(['productId', 'price'])
+        // PRODUCT_IDS
+        && i.productId in ['galaxy-a17', 'galaxy-a56', 'iphone-17', 'galaxy-s25-ultra', 'iphone-17-pro-max']
+        && i.price is int && i.price >= 50000 && i.price <= 20000000;
+    }
+
+    function validStock(s) {
+      return s is list && s.size() >= 1 && s.size() <= 5
+        && validItem(s[0])
+        && (s.size() < 2 || validItem(s[1]))
+        && (s.size() < 3 || validItem(s[2]))
+        && (s.size() < 4 || validItem(s[3]))
+        && (s.size() < 5 || validItem(s[4]));
+    }
+
+    function text(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+
+    function validShop(d, slug) {
+      return d.keys().hasOnly(['slug', 'name', 'location', 'ownerUid', 'theme', 'stock', 'createdAt', 'updatedAt'])
+        && d.keys().hasAll(['slug', 'name', 'location', 'ownerUid', 'theme', 'stock', 'createdAt', 'updatedAt'])
+        && d.slug == slug
+        && slug.matches('^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$')
+        && text(d.name, 2, 40)
+        && text(d.location, 2, 40)
+        && validTheme(d.theme)
+        && validStock(d.stock)
+        && d.updatedAt == request.time;
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /shops/{slug} {
+      allow read: if true;
+
+      // A new shop: yours, well-formed, and claimed together with your owners/{uid} doc,
+      // which must not exist yet (one shop per account).
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && validShop(request.resource.data, slug)
+        && request.resource.data.createdAt == request.time
+        && !exists(/databases/$(database)/documents/owners/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/owners/$(request.auth.uid)).data.slug == slug;
+
+      // Editing: only the owner, who can't hand the shop to someone else or rewrite its history.
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validShop(request.resource.data, slug);
+
+      allow delete: if false;
+    }
+
+    match /owners/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['slug'])
+        && request.resource.data.slug is string
+        && getAfter(/databases/$(database)/documents/shops/$(request.resource.data.slug)).data.ownerUid == uid;
+
+      allow update, delete: if false;
+    }
+  }
+}

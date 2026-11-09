@@ -1,8 +1,10 @@
 "use client";
 
+import { VIRTU_SHOP } from "@/data/demo-shops";
 import { getProduct, products } from "@/data/products";
-import { FIXTURES, type Fixture, PEGBOARD, SHELF_STOCK } from "@/data/store-layout";
+import { type Fixture, PEGBOARD, SHELF_STOCK } from "@/data/store-layout";
 import { slotLocalX } from "@/lib/display-slots";
+import type { ShopConfig } from "@/lib/shop-schema";
 import { useUiStore } from "@/store/ui-store";
 import type { Product } from "@/types/product";
 import { Instance, Instances, useGLTF } from "@react-three/drei";
@@ -213,11 +215,11 @@ function PegboardPacks() {
   );
 }
 
-export function StoreScene() {
+export function StoreScene({ shop, fixtures }: { shop: ShopConfig; fixtures: Fixture[] }) {
   return (
     <group>
-      <ShopShell />
-      {FIXTURES.map((f) => (
+      <ShopShell theme={shop.theme} sign={shop.slug === VIRTU_SHOP.slug ? null : shop.name} />
+      {fixtures.map((f) => (
         <FixtureView key={f.id} fixture={f} />
       ))}
       <ShelfStock />

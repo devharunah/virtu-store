@@ -179,6 +179,86 @@ describe("persistence", () => {
   });
 });
 
+describe("lines from a seller's shop", () => {
+  const SHOP = { slug: "kikuubo-phone-hub", name: "Kikuubo Phone Hub", basePrice: 650_000 };
+
+  it("keeps the shop's lines apart from the showroom's, and prices them at the shop's price", () => {
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "256", shop: SHOP });
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "256" });
+    expect(cart().lines.map((l) => l.key)).toEqual([
+      lineKey("galaxy-a17", "black", "256", SHOP.slug),
+      A17_BLACK_256,
+    ]);
+    expect(priceLines(cart().lines).map((l) => l.unitPrice)).toEqual([
+      650_000 + 120_000, // the shop's base plus the catalogue's storage step
+      840_000,
+    ]);
+  });
+
+  it("keeps the shop when the variant changes", () => {
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", shop: SHOP });
+    cart().changeVariant(lineKey("galaxy-a17", "black", "128", SHOP.slug), "256");
+    expect(cart().lines[0]).toMatchObject({
+      key: lineKey("galaxy-a17", "black", "256", SHOP.slug),
+      shop: SHOP,
+    });
+  });
+
+  it("takes the latest price when the same phone is added again", () => {
+    cart().addItem({ productId: "galaxy-a17", colourId: "black", variantId: "128", shop: SHOP });
+    cart().addItem({
+      productId: "galaxy-a17",
+      colourId: "black",
+      variantId: "128",
+      shop: { ...SHOP, basePrice: 600_000 },
+    });
+    expect(cart().lines).toHaveLength(1);
+    expect(cart().lines[0]).toMatchObject({ qty: 2, shop: { basePrice: 600_000 } });
+  });
+
+  it("refuses a malformed shop snapshot", () => {
+    cart().addItem({
+      productId: "galaxy-a17",
+      colourId: "black",
+      variantId: "128",
+      shop: { ...SHOP, basePrice: -1 },
+    });
+    expect(cart().lines).toEqual([]);
+  });
+
+  it("drops tampered shop snapshots when rehydrating", async () => {
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          lines: [
+            { productId: "galaxy-a17", colourId: "black", variantId: "128", qty: 1, shop: SHOP },
+            {
+              productId: "galaxy-a17",
+              colourId: "blue",
+              variantId: "128",
+              qty: 1,
+              shop: { ...SHOP, basePrice: 1 },
+            },
+            {
+              productId: "galaxy-a17",
+              colourId: "gray",
+              variantId: "128",
+              qty: 1,
+              shop: { ...SHOP, slug: "<script>" },
+            },
+          ],
+        },
+        version: 1,
+      }),
+    );
+    await useCart.persist.rehydrate();
+    expect(cart().lines.map((l) => l.key)).toEqual([
+      lineKey("galaxy-a17", "black", "128", SHOP.slug),
+    ]);
+  });
+});
+
 describe("priced lines", () => {
   it("prices from the catalogue and skips lines that no longer exist", () => {
     useCart.setState({

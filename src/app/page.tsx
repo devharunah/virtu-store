@@ -23,12 +23,21 @@ export default function Home() {
           iPhone 17 or a Samsung Galaxy, spin it in 360°, choose storage and colour, and order for
           delivery. {products.length} phones from {formatUGX(from)}.
         </p>
-        <div>
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/store"
             className="inline-flex h-12 items-center rounded-full bg-neutral-900 px-6 font-medium text-white transition-colors hover:bg-neutral-700"
           >
             Enter the store
+          </Link>
+          <Link
+            href="/stores"
+            className="inline-flex h-12 items-center rounded-full border border-neutral-900 px-6 font-medium transition-colors hover:bg-black/5"
+          >
+            Browse shops
+          </Link>
+          <Link href="/sell" className="px-2 font-medium underline underline-offset-4">
+            Sell phones? Open your shop
           </Link>
         </div>
         <Image

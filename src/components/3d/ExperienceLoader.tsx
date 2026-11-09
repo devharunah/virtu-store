@@ -1,5 +1,7 @@
 "use client";
 
+import { VIRTU_SHOP } from "@/data/demo-shops";
+import type { ShopConfig } from "@/lib/shop-schema";
 import dynamic from "next/dynamic";
 
 // WebGL exists only in the browser. `ssr: false` must live in a Client Component
@@ -11,6 +13,7 @@ const Experience = dynamic(() => import("./Experience"), {
   ),
 });
 
-export default function ExperienceLoader() {
-  return <Experience />;
+/** The 3D shop. Without a `shop` it renders the original VIRTU.STORE showroom. */
+export default function ExperienceLoader({ shop = VIRTU_SHOP }: { shop?: ShopConfig }) {
+  return <Experience shop={shop} />;
 }

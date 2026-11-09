@@ -19,7 +19,10 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 - 3D: three.js, React Three Fiber 9, drei 10, Rapier 2 physics, ecctrl 2 character controller
 - State: zustand 5
 - 3D assets: Blender 5.2 Python generators in `blender/`, optimised with `gltf-transform` (meshopt)
-- Data: static TypeScript for now. No backend, no environment variables yet
+- Data: static TypeScript catalogue; seller shops in Firebase (Auth + Firestore, client SDK
+  only, loaded lazily). Without the `NEXT_PUBLIC_FIREBASE_*` variables the app runs on the demo
+  shops alone. See `docs/FIREBASE-SETUP.md`
+- Validation: zod (`src/lib/shop-schema.ts`), mirrored by `firestore.rules`
 - Package manager: pnpm, pinned in `packageManager`
 - Hosting: Vercel (GitHub integration: preview per PR, production on `main`)
 
@@ -27,10 +30,11 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 
 | Path | What lives there |
 |---|---|
-| `src/app/` | Routes: `/` landing, `/store` the 3D showroom, `/checkout` |
-| `src/components/3d/` | Everything inside the R3F `<Canvas>`. Client-only |
-| `src/components/ui/`, `cart/`, `products/` | HTML overlay UI |
-| `src/data/` | Product catalogue and the store layout (fixtures, colliders, spawn) |
+| `src/app/` | Routes: `/` landing, `/store` the VIRTU showroom, `/stores` directory, `/stores/[slug]` any shop, `/sell` seller dashboard, `/checkout` |
+| `src/components/3d/` | Everything inside the R3F `<Canvas>`. Client-only. `Experience` takes a `shop` |
+| `src/components/ui/`, `cart/`, `products/`, `shop/`, `sell/` | HTML overlay UI, shop pages, seller dashboard |
+| `src/data/` | Product catalogue, store layout (fixtures, colliders, spawn, `buildFixtures`), demo shops, themes |
+| `firestore.rules`, `firebase.json`, `scripts/check-rules.mjs` | Firestore security rules, emulator config, rules attack script |
 | `src/store/` | zustand stores |
 | `src/lib/` | Pure modules (pricing, formatting) |
 | `public/models/` | Optimised GLBs + `manifest.json`. Material names are an API (see `docs/ASSET-PIPELINE.md`) |
@@ -59,10 +63,15 @@ Built as a showcase for LinkedIn and TikTok. Plans and research live in `docs/`.
 
 ## Environment
 
-Never read `process.env` directly. Call `requireEnv` from `src/lib/env.ts` (add it with the first
-variable), so a missing variable fails at the point of use with a message naming the variable and
-pointing at `.env.example`. Add every new variable to `.env.example` in the same commit as the
-code that reads it.
+Pass every required variable through `requireEnv(name, value)` from `src/lib/env.ts`, so a
+missing variable fails at the point of use with a message naming the variable and pointing at
+`.env.example`. Add every new variable to `.env.example` in the same commit as the code that
+reads it.
+
+Browser code must name each `NEXT_PUBLIC_*` variable literally (`process.env["NEXT_PUBLIC_X"]`),
+which is why `requireEnv` takes the value as an argument: Next inlines only literal reads, so a
+dynamic `process.env[name]` is always undefined in the browser. `src/lib/firebase.ts` shows the
+pattern.
 
 ## TypeScript
 

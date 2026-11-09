@@ -1,9 +1,12 @@
 "use client";
 
+import { useShop } from "@/components/shop/ShopContext";
+import { VIRTU_SHOP } from "@/data/demo-shops";
 import { getProduct } from "@/data/products";
 import { formatUGX } from "@/lib/format-ugx";
 import { unitPrice } from "@/lib/pricing";
-import { useCart } from "@/store/cart-store";
+import { shopBasePrice, shopUnitPrice } from "@/lib/shop-pricing";
+import { lineKey, useCart } from "@/store/cart-store";
 import { selectionFor, useUiStore } from "@/store/ui-store";
 import { Check, ShoppingBag, X } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -25,6 +28,7 @@ export function ProductPanel() {
   const addItem = useCart((s) => s.addItem);
   const openCart = useCart((s) => s.openCart);
   const [added, setAdded] = useState<string | null>(null);
+  const shop = useShop();
 
   const product = inspectingId ? getProduct(inspectingId) : undefined;
 
@@ -36,11 +40,25 @@ export function ProductPanel() {
 
   const sel = selectionFor(selections, product);
   const colour = product.colours.find((c) => c.id === sel.colourId);
-  const price = unitPrice(product, sel.variantId) ?? product.basePrice;
-  const addedKey = `${product.id}:${sel.colourId}:${sel.variantId}`;
+  // The VIRTU showroom prices from the catalogue; a seller's shop uses its own prices.
+  const isSeller = shop.slug !== VIRTU_SHOP.slug;
+  const sellerBase = isSeller ? shopBasePrice(shop, product.id) : undefined;
+  const price =
+    (isSeller ? shopUnitPrice(shop, product, sel.variantId) : unitPrice(product, sel.variantId)) ??
+    product.basePrice;
+  const cartShop =
+    sellerBase === undefined
+      ? undefined
+      : { slug: shop.slug, name: shop.name, basePrice: sellerBase };
+  const addedKey = lineKey(product.id, sel.colourId, sel.variantId, cartShop?.slug);
 
   const addToBag = () => {
-    addItem({ productId: product.id, colourId: sel.colourId, variantId: sel.variantId });
+    addItem({
+      productId: product.id,
+      colourId: sel.colourId,
+      variantId: sel.variantId,
+      ...(cartShop ? { shop: cartShop } : {}),
+    });
     setAdded(addedKey);
   };
   const viewBag = () => {
