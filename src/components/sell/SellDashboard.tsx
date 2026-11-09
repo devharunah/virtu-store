@@ -32,8 +32,9 @@ export function SellDashboard() {
           <h2 className="font-semibold">Seller accounts aren&rsquo;t configured</h2>
           <p className="mt-1 text-sm text-neutral-600">
             This copy of VIRTU.STORE has no Firebase project connected. Set the{" "}
-            <code className="text-[0.85em]">NEXT_PUBLIC_FIREBASE_*</code> variables from <code className="text-[0.85em]">.env.example</code> to turn on
-            seller sign-in (see <code className="text-[0.85em]">docs/FIREBASE-SETUP.md</code>).
+            <code className="text-[0.85em]">NEXT_PUBLIC_FIREBASE_*</code> variables from{" "}
+            <code className="text-[0.85em]">.env.example</code> to turn on seller sign-in (see{" "}
+            <code className="text-[0.85em]">docs/FIREBASE-SETUP.md</code>).
           </p>
         </div>
       </>
