@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { products } from "@/data/products";
+import { CLOUDINARY_URL_PATTERN } from "../image-url";
 import { MAX_PRICE, MIN_PRICE, type ShopConfig, parseShop, slugify } from "../shop-schema";
 
 const valid: ShopConfig = {
@@ -101,6 +102,40 @@ describe("slugify", () => {
   });
 });
 
+const IMAGE_URL_SAMPLES = [
+  "https://res.cloudinary.com/virtu/image/upload/v1731000000/virtu/shops/abc_123.webp",
+  "https://res.cloudinary.com/demo/image/upload/w_800,c_fill/sample.jpg",
+  "http://res.cloudinary.com/virtu/image/upload/x.jpg",
+  "https://res.cloudinary.com.evil.io/virtu/image/upload/x.jpg",
+  "https://res.cloudinary.com/virtu/video/upload/x.mp4",
+  "https://res.cloudinary.com/virtu/image/upload/x.jpg?track=1",
+  "https://evil.example/x.png",
+  "javascript:alert(1)",
+];
+
+describe("bannerUrl", () => {
+  const base = {
+    slug: "banner-shop",
+    name: "Banner Shop",
+    location: "Kampala",
+    ownerUid: "u1",
+    theme: { wall: "#EFE9DA", accent: "#0F6E74", floor: "#D8D1C3" },
+    stock: [{ productId: "galaxy-a17", price: 700_000 }],
+  };
+
+  it("is optional", () => {
+    expect(parseShop(base).success).toBe(true);
+  });
+
+  it("accepts a Cloudinary image", () => {
+    expect(parseShop({ ...base, bannerUrl: IMAGE_URL_SAMPLES[0] }).success).toBe(true);
+  });
+
+  it.each(IMAGE_URL_SAMPLES.slice(2))("refuses %p", (bannerUrl) => {
+    expect(parseShop({ ...base, bannerUrl }).success).toBe(false);
+  });
+});
+
 describe("firestore.rules", () => {
   const rules = readFileSync(join(process.cwd(), "firestore.rules"), "utf8");
 
@@ -113,5 +148,14 @@ describe("firestore.rules", () => {
   it("uses the same price range as the schema", () => {
     expect(rules).toContain(`i.price >= ${MIN_PRICE}`);
     expect(rules).toContain(`i.price <= ${MAX_PRICE}`);
+  });
+
+  it("accepts the same image URLs as src/lib/image-url.ts", () => {
+    const source = /IMAGE_URL\s*\n\s*&& v\.matches\('([^']+)'\)/.exec(rules)?.[1];
+    expect(source).toBeDefined();
+    const rulesPattern = new RegExp(source ?? "^$");
+    for (const url of IMAGE_URL_SAMPLES) {
+      expect([url, rulesPattern.test(url)]).toEqual([url, CLOUDINARY_URL_PATTERN.test(url)]);
+    }
   });
 });

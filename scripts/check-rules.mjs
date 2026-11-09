@@ -125,6 +125,21 @@ await expectOutcome("a bad colour is refused", false, () =>
     theme: { wall: "red", accent: "#0F6E74", floor: "#D8D1C3" },
   }),
 );
+await expectOutcome("a Cloudinary banner is accepted", true, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    bannerUrl: "https://res.cloudinary.com/virtu/image/upload/v1/virtu/shops/banner.webp",
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("a banner from another site is refused", false, () =>
+  updateDoc(doc(alice.db, "shops", aliceSlug), {
+    bannerUrl: "https://evil.example/tracker.png",
+    updatedAt: serverTimestamp(),
+  }),
+);
+await expectOutcome("a banner that isn't a string is refused", false, () =>
+  claim(bob.db, `banner-${run}`, b.user.uid, { bannerUrl: { url: "x" } }),
+);
 await expectOutcome("bob can't claim alice's slug", false, () =>
   claim(bob.db, aliceSlug, b.user.uid),
 );

@@ -181,12 +181,23 @@ function ShopColliders() {
   );
 }
 
-/** `sign`: the seller's shop name for the signboard, or null to keep the baked VIRTU board. */
-export function ShopShell({ theme, sign }: { theme: ShopTheme; sign: string | null }) {
+/**
+ * `sign`: the seller's shop name for the signboard, or null to keep the baked VIRTU board.
+ * `banner`: the seller's banner image for the front signboard, when they uploaded one.
+ */
+export function ShopShell({
+  theme,
+  sign,
+  banner,
+}: {
+  theme: ShopTheme;
+  sign: string | null;
+  banner?: string | undefined;
+}) {
   return (
     <group>
       <Shell theme={theme} />
-      {sign !== null && <ShopSign name={sign} accent={theme.accent} />}
+      {sign !== null && <ShopSign name={sign} accent={theme.accent} banner={banner} />}
       <Fan />
       <ShopColliders />
     </group>

@@ -13,6 +13,7 @@ import {
 import { SlugTakenError, getMyShop, isSlugFree, saveShop } from "@/lib/shops-repo";
 import Link from "next/link";
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { ImageUpload } from "./ImageUpload";
 import { StockPicker } from "./StockPicker";
 import { ThemePicker } from "./ThemePicker";
 
@@ -156,6 +157,17 @@ export function ShopEditor({ uid }: { uid: string }) {
 
         <ThemePicker theme={draft.theme} onChange={(theme) => setDraft((d) => ({ ...d, theme }))} />
         <FieldError id="theme-error" message={errors.theme} />
+
+        <ImageUpload
+          label="Shop banner"
+          hint="Optional. A wide image, about 4:1 (e.g. 1600 × 400). It shows on your card in the shop directory and over your 3D shop front; the middle is what fits."
+          urls={draft.bannerUrl === "" ? [] : [draft.bannerUrl]}
+          onChange={(urls) => setDraft((d) => ({ ...d, bannerUrl: urls[0] ?? "" }))}
+          max={1}
+          folder={`virtu/shops/${uid}`}
+          thumbClass="aspect-[4/1] w-full max-w-sm"
+        />
+        <FieldError id="banner-error" message={errors.bannerUrl} />
 
         <StockPicker stock={draft.stock} onChange={(stock) => setDraft((d) => ({ ...d, stock }))} />
         <FieldError id="stock-error" message={errors.stock} />

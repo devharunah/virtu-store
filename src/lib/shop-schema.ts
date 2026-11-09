@@ -1,5 +1,6 @@
 import { getProduct } from "@/data/products";
 import { z } from "zod";
+import { isCloudinaryUrl } from "./image-url";
 
 /**
  * A seller's shop: what it is called, how its room is painted and which phones it sells at
@@ -30,12 +31,17 @@ export const stockItemSchema = z.object({
     .max(MAX_PRICE, `At most UGX ${MAX_PRICE.toLocaleString("en-US")}`),
 });
 
+/** An uploaded image: a Cloudinary delivery URL (see `src/lib/image-url.ts`). */
+export const imageUrlSchema = z.string().refine(isCloudinaryUrl, "Upload the image again");
+
 export const shopSchema = z.object({
   slug: z.string().regex(SLUG_PATTERN, "3–32 characters: lowercase letters, numbers and dashes"),
   name: z.string().trim().min(2, "At least 2 characters").max(40, "At most 40 characters"),
   location: z.string().trim().min(2, "Where is the shop?").max(40, "At most 40 characters"),
   ownerUid: z.string().min(1),
   theme: themeSchema,
+  /** Optional wide banner: shown on the directory card and the 3D shop's front sign. */
+  bannerUrl: imageUrlSchema.optional(),
   stock: z
     .array(stockItemSchema)
     .min(1, "Sell at least one phone")
