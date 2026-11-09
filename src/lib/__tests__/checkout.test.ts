@@ -9,6 +9,7 @@ import {
   networkFor,
   normalizeUgPhone,
   validateCheckout,
+  withSubmittedText,
 } from "../checkout";
 
 describe("normalizeUgPhone", () => {
@@ -20,6 +21,10 @@ describe("normalizeUgPhone", () => {
     "256772123456",
     "772123456",
     "(0772) 123-456",
+    "+256 0772 123456", // trunk 0 after the country code
+    "+2560772123456",
+    "2560772123456",
+    "256 0772 123 456",
   ])("normalises %s", (input) => {
     expect(normalizeUgPhone(input)).toBe("+256772123456");
   });
@@ -32,6 +37,8 @@ describe("normalizeUgPhone", () => {
     "0414 123456", // landline, not 7x
     "+254772123456", // Kenyan
     "07721234ab",
+    "+256 00772 123456", // two zeros
+    "+256 0772 12345", // too short after the trunk 0
   ])("rejects %p", (input) => {
     expect(normalizeUgPhone(input)).toBeNull();
   });
@@ -151,5 +158,38 @@ describe("default payment", () => {
   it("starts on cash on delivery, listed first", () => {
     expect(INITIAL_CHECKOUT_FORM.payment).toBe("cash");
     expect(PAYMENT_METHODS[0]?.id).toBe("cash");
+  });
+});
+
+describe("withSubmittedText", () => {
+  const data = (entries: Record<string, string>) => {
+    const fd = new FormData();
+    for (const [key, value] of Object.entries(entries)) fd.set(key, value);
+    return fd;
+  };
+
+  it("takes autofilled text fields from the submitted form data", () => {
+    const merged = withSubmittedText(
+      INITIAL_CHECKOUT_FORM,
+      data({ fullName: "Amina Nakato", phone: "0772 123456", notes: "Blue gate" }),
+    );
+    expect(merged).toEqual({
+      ...INITIAL_CHECKOUT_FORM,
+      fullName: "Amina Nakato",
+      phone: "0772 123456",
+      notes: "Blue gate",
+    });
+  });
+
+  it("keeps state for fields the form data lacks, and never touches area or payment", () => {
+    const form = { ...INITIAL_CHECKOUT_FORM, fullName: "Okello", area: "Nakawa" as const };
+    const merged = withSubmittedText(form, data({ phone: "0700 123456", area: "Kira" }));
+    expect(merged).toEqual({ ...form, phone: "0700 123456" });
+  });
+
+  it("does not mutate the form it is given", () => {
+    const form = { ...INITIAL_CHECKOUT_FORM };
+    withSubmittedText(form, data({ phone: "0772 123456" }));
+    expect(form).toEqual(INITIAL_CHECKOUT_FORM);
   });
 });

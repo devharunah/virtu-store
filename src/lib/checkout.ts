@@ -23,11 +23,12 @@ const AIRTEL_PREFIXES = ["70", "74", "75"];
 /**
  * Normalises a Ugandan mobile number to E.164 (`+256772123456`), or returns null.
  * Accepts `0772 123456`, `+256 772 123456`, `256772123456` and `772123456`, with
- * spaces, dashes, dots or brackets anywhere. The 9 national digits must start with 7.
+ * spaces, dashes, dots or brackets anywhere. A trunk 0 after the country code
+ * (`+256 0772 123456`, `2560772123456`) is dropped. The 9 national digits must start with 7.
  */
 export function normalizeUgPhone(input: string): string | null {
   const compact = input.trim().replace(/[\s\-.()]/g, "");
-  const match = /^(?:\+256|256|0)?(\d{9})$/.exec(compact);
+  const match = /^(?:\+?2560?|0)?(\d{9})$/.exec(compact);
   const national = match?.[1];
   if (national === undefined || !national.startsWith("7")) return null;
   return `+256${national}`;
@@ -58,6 +59,22 @@ export interface CheckoutForm {
   notes: string;
   /** Starts on "cash"; "" only if a caller clears it. */
   payment: PaymentMethod | "";
+}
+
+const TEXT_FIELDS = ["fullName", "phone", "notes"] as const;
+
+/**
+ * The form with its text fields taken from the submitted `FormData` where present.
+ * Phone, contact and password-manager autofill can write a field's value without an
+ * input event, so React state alone can miss what the shopper sees.
+ */
+export function withSubmittedText(form: CheckoutForm, data: FormData): CheckoutForm {
+  const patch: Partial<CheckoutForm> = {};
+  for (const field of TEXT_FIELDS) {
+    const value = data.get(field);
+    if (typeof value === "string") patch[field] = value;
+  }
+  return { ...form, ...patch };
 }
 
 export type CheckoutErrors = Partial<Record<keyof CheckoutForm, string>>;

@@ -126,6 +126,26 @@ test("cash on delivery is preselected and skips the phone prompt", async ({ page
   await expect(page.getByText(/Estimated delivery: 1–2 days\./)).toBeVisible();
 });
 
+test("an autofilled phone number with no input event still places the order", async ({ page }) => {
+  await seedCart(page);
+  await page.goto("/checkout");
+
+  await page.getByLabel("Full name").fill("Amina Nakato");
+  await page.getByLabel("Delivery area").selectOption("Nakawa");
+  await page.getByLabel("Landmark or address notes").fill("Opposite Shell Kisementi");
+  // Phone autofill writes the DOM value without an input event React sees.
+  await page.evaluate(() => {
+    const phone = document.querySelector<HTMLInputElement>("#phone");
+    if (phone === null) throw new Error("no #phone input");
+    phone.value = "+256 0772 123456";
+  });
+  await page.getByRole("button", { name: /^Place order · UGX/ }).click();
+
+  await expect(page.getByText("Enter the phone number the rider should call.")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Order placed/ })).toBeVisible();
+  await expect(page.getByText(/A boda rider will call you on \+256 772 123456\./)).toBeVisible();
+});
+
 test("the bag drawer edits lines and the summary follows", async ({ page }) => {
   await seedCart(page);
   await page.goto("/checkout");
