@@ -10,13 +10,14 @@ import {
 } from "@/lib/checkout";
 import { formatUGX } from "@/lib/format-ugx";
 import { DELIVERY_AREAS, type DeliveryArea, deliveryFeeFor } from "@/lib/pricing";
-import type { FormEvent } from "react";
+import type { FocusEvent, FormEvent } from "react";
 
 interface CheckoutFieldsProps {
   form: CheckoutForm;
   errors: CheckoutErrors;
   onChange: (patch: Partial<CheckoutForm>) => void;
-  onSubmit: () => void;
+  /** Gets the form element so the caller can read values autofill wrote without an input event. */
+  onSubmit: (formElement: HTMLFormElement) => void;
   total: string;
 }
 
@@ -46,8 +47,14 @@ export default function CheckoutFields({
 }: CheckoutFieldsProps) {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit();
+    onSubmit(event.currentTarget);
   };
+  // Autofill can write a value without an input event React sees; pick it up when focus leaves.
+  const syncOnBlur =
+    (field: "fullName" | "phone" | "notes") =>
+    (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (event.target.value !== form[field]) onChange({ [field]: event.target.value });
+    };
   const network =
     normalizeUgPhone(form.phone) === null ? null : NETWORK_LABEL[networkFor(form.phone)];
   const described = (field: keyof CheckoutForm) =>
@@ -67,6 +74,7 @@ export default function CheckoutFields({
           autoComplete="name"
           value={form.fullName}
           onChange={(e) => onChange({ fullName: e.target.value })}
+          onBlur={syncOnBlur("fullName")}
           className={`${inputClass} ${borderFor(errors.fullName)}`}
           {...described("fullName")}
         />
@@ -86,6 +94,7 @@ export default function CheckoutFields({
           placeholder="0772 123456"
           value={form.phone}
           onChange={(e) => onChange({ phone: e.target.value })}
+          onBlur={syncOnBlur("phone")}
           className={`${inputClass} ${borderFor(errors.phone)}`}
           {...described("phone")}
         />
@@ -129,6 +138,7 @@ export default function CheckoutFields({
           placeholder="e.g. Opposite Shell Kisementi, blue gate"
           value={form.notes}
           onChange={(e) => onChange({ notes: e.target.value })}
+          onBlur={syncOnBlur("notes")}
           className={`${inputClass} h-auto py-2 ${borderFor(errors.notes)}`}
           {...described("notes")}
         />

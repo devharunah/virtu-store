@@ -12,6 +12,7 @@ import {
   normalizeUgPhone,
   paymentLabel,
   validateCheckout,
+  withSubmittedText,
 } from "@/lib/checkout";
 import { formatUGX } from "@/lib/format-ugx";
 import { type CartTotals, type DeliveryArea, cartTotals } from "@/lib/pricing";
@@ -90,11 +91,14 @@ export default function CheckoutFlow() {
     );
   };
 
-  const onSubmit = () => {
-    const found = validateCheckout(form);
+  const onSubmit = (formElement: HTMLFormElement) => {
+    // Read the text fields from the DOM too: autofill can fill them without an input event.
+    const submitted = withSubmittedText(form, new FormData(formElement));
+    setForm(submitted);
+    const found = validateCheckout(submitted);
     setErrors(found);
-    const phone = normalizeUgPhone(form.phone);
-    if (hasErrors(found) || phone === null || form.area === "" || form.payment === "") {
+    const phone = normalizeUgPhone(submitted.phone);
+    if (hasErrors(found) || phone === null || submitted.area === "" || submitted.payment === "") {
       const first = FIELD_ORDER.find((field) => found[field] !== undefined);
       if (first === "payment") {
         document.querySelector<HTMLInputElement>('input[name="payment"]')?.focus();
@@ -105,10 +109,10 @@ export default function CheckoutFlow() {
     }
     const order: PlacedOrder = {
       id: makeOrderId(),
-      fullName: form.fullName.trim(),
+      fullName: submitted.fullName.trim(),
       phone,
-      area: form.area,
-      payment: form.payment,
+      area: submitted.area,
+      payment: submitted.payment,
       lines,
       totals,
     };
