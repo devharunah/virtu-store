@@ -82,6 +82,15 @@ PHONES = [
          color="#E8732C", metallic=0.55, roughness=0.32),
 ]
 
+# The stand-in for phones sellers add themselves (no catalogue model): unbranded, no logo, a
+# neutral two-lens island. Exported with the others but not in the lineup renders.
+GENERIC_PHONE = dict(id="generic-phone", name="Seller's phone", tier="Seller's phone",
+                     w=75.0, h=160.0, t=8.0, r=9.5, inset=2.0, selfie="hole",
+                     islands=[dict(kind="rrect", x=22, z=134, w=22, h=40, r=9, depth=1.3, material="body")],
+                     lenses=[(22, 144, 6.0), (22, 125, 6.0)], flash=(9, 144),
+                     buttons=GALAXY_BUTTONS,
+                     color="#2A2C30", metallic=0.1, roughness=0.4)
+
 
 # --------------------------------------------------------------------------
 # Helpers
@@ -450,7 +459,7 @@ def main():
     reset_scene()
     manifest = {"phones": [], "fixtures": []}
 
-    for spec in PHONES:
+    for spec in [*PHONES, GENERIC_PHONE]:
         reset_scene()
         ob = build_phone(spec)
         path = os.path.join(RAW_DIR, f"{spec['id']}.glb")

@@ -1,6 +1,7 @@
 "use client";
 
-import { getProduct } from "@/data/products";
+import { useShop } from "@/components/shop/ShopContext";
+import { resolveShopProduct } from "@/lib/shop-products";
 import { useUiStore } from "@/store/ui-store";
 import { Joystick, VirtualButton } from "ecctrl/input";
 
@@ -13,7 +14,8 @@ export function TouchControls() {
   const inspecting = useUiStore((s) => s.inspectingId !== null);
   const nearColourId = useUiStore((s) => s.nearColourId);
   const openInspect = useUiStore((s) => s.openInspect);
-  const near = nearProductId ? getProduct(nearProductId) : undefined;
+  const shop = useShop();
+  const near = nearProductId ? resolveShopProduct(shop, nearProductId) : undefined;
 
   if (inspecting) return null;
 

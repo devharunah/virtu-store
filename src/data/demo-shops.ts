@@ -46,6 +46,24 @@ export const DEMO_SHOPS: readonly ShopConfig[] = [
       { productId: "iphone-17-pro-max", price: 6_350_000 },
       { productId: "iphone-17", price: 3_950_000 },
     ],
+    // A phone the shop added itself (fictional brand): it shows as the generic display model.
+    customPhones: [
+      {
+        id: "c1",
+        brand: "Kabira",
+        name: "K1 Lite",
+        price: 480_000,
+        storage: [
+          { label: "64 GB", priceDelta: 0 },
+          { label: "128 GB", priceDelta: 60_000 },
+        ],
+        colours: [
+          { label: "Lake Blue", hex: "#2F6FA8" },
+          { label: "Graphite", hex: "#2A2C30" },
+        ],
+        photos: [],
+      },
+    ],
   },
 ];
 

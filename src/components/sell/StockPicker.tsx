@@ -3,6 +3,8 @@
 import { getProduct } from "@/data/products";
 import { formatUGX } from "@/lib/format-ugx";
 import type { StockDraft } from "@/lib/shop-draft";
+import { MAX_PHOTOS } from "@/lib/shop-schema";
+import { ImageUpload } from "./ImageUpload";
 
 /**
  * Which phones the shop sells and at what base price. Ticked phones go on the counters in this
@@ -11,9 +13,12 @@ import type { StockDraft } from "@/lib/shop-draft";
 export function StockPicker({
   stock,
   onChange,
+  folder,
 }: {
   stock: StockDraft[];
   onChange: (stock: StockDraft[]) => void;
+  /** Cloudinary folder for this seller's photo uploads. */
+  folder: string;
 }) {
   const update = (productId: string, patch: Partial<StockDraft>) =>
     onChange(stock.map((s) => (s.productId === productId ? { ...s, ...patch } : s)));
@@ -76,6 +81,19 @@ export function StockPicker({
                     Feature
                   </button>
                 ))}
+              {row.on && (
+                <div className="w-full">
+                  <ImageUpload
+                    label={`Real photos of your ${product.name}`}
+                    hint="Optional. Shoppers can switch from the 3D model to your photos."
+                    urls={row.photos}
+                    onChange={(photos) => update(row.productId, { photos })}
+                    max={MAX_PHOTOS}
+                    folder={folder}
+                    thumbClass="aspect-square w-16"
+                  />
+                </div>
+              )}
             </li>
           );
         })}

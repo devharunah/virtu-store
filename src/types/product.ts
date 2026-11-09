@@ -1,6 +1,13 @@
 export type VariantKind = "storage" | "size"; // "size" is reserved for sneakers (Aisle 2)
 
-export type Tier = "Budget" | "Entry" | "Mid-range" | "Upper mid" | "Flagship";
+export type Tier =
+  | "Budget"
+  | "Entry"
+  | "Mid-range"
+  | "Upper mid"
+  | "Flagship"
+  /** A phone a seller added themselves (not in the catalogue). */
+  | "Seller's phone";
 
 export type Brand = "Apple" | "Samsung";
 
@@ -24,8 +31,9 @@ export interface ProductSpecs {
 }
 
 export interface Product {
-  id: string; // matches the GLB filename
-  brand: Brand;
+  id: string; // matches the GLB filename; seller-added phones are "custom-<id>"
+  /** A catalogue `Brand`, or whatever a seller typed for a phone they added. */
+  brand: Brand | (string & {});
   name: string;
   tier: Tier;
   basePrice: number; // UGX, integer
@@ -33,8 +41,13 @@ export interface Product {
   colours: ColourOption[];
   variantKind: VariantKind;
   variants: VariantOption[];
-  specs: ProductSpecs;
+  /** Catalogue phones only; a seller's own phone has none. */
+  specs?: ProductSpecs;
   displaySlot: string; // which fixture/slot in the store it sits on
+  /** Real photos a seller uploaded (Cloudinary URLs). */
+  photos?: string[];
+  /** True for a phone a seller added themselves; it shows as the unbranded generic model. */
+  custom?: boolean;
 }
 
 export interface CartItem {

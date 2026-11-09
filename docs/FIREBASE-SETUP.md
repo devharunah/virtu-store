@@ -8,10 +8,15 @@ explains that seller accounts aren't configured. That is how CI runs.
 
 | Collection | Document | Who can read | Who can write |
 |---|---|---|---|
-| `shops` | `{slug}`: name, location, ownerUid, theme, optional bannerUrl, stock, timestamps | everyone | its owner (create, update); nobody deletes |
+| `shops` | `{slug}`: name, location, ownerUid, theme, optional bannerUrl, stock (catalogue phones and prices), customPhones (`{ id, name, price }` summaries), timestamps | everyone | its owner (create, update); nobody deletes |
+| `shops/{slug}/phones` | `c1`..`c4`: a seller-added phone (brand, name, price, storage, colours, photos). `{productId}`: photos of a catalogue phone | everyone | the shop's owner (create, update, delete) |
 | `owners` | `{uid}`: `{ slug }` | that user | that user, once, together with their shop |
 
-- One shop per account.
+- One shop per account, with up to 5 catalogue phones and up to 4 of the seller's own.
+- Phone details live in their own documents because Firestore evaluates at most 1,000 rule
+  expressions per write. Checking every phone's colours, storage and photos inside the shop
+  document goes over that. `pnpm rules:check` writes the largest allowed documents to prove they
+  still fit. `src/lib/shop-storage.ts` splits a shop into these documents and joins it back.
 - A shop's link (`/stores/{slug}`) never changes once opened.
 - `firestore.rules` enforces the same shape as `src/lib/shop-schema.ts`: known phones only, whole
   UGX between 50,000 and 20,000,000, `#RRGGBB` colours, 2–40 character names, image URLs on
@@ -82,7 +87,8 @@ NEXT_PUBLIC_FIREBASE_EMULATORS=true
 
 ## Cost on the Spark plan
 
-- Reads: the directory reads up to 60 shops per visit, and a shop page reads one.
+- Reads: the directory reads up to 60 shop documents per visit. A shop page reads its document plus
+  its phone documents (one query).
 - Writes: only sellers write, when they save.
 - The free daily quota (50k reads, 20k writes) covers a demo with plenty of room.
 - Authentication with Google and email is free.

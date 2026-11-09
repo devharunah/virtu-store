@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { resolveDisplaySlots } from "@/lib/display-slots";
+import { GENERIC_PHONE_URL } from "@/lib/shop-products";
 import { getProduct, products } from "../products";
 import { CORRIDOR, FIXTURES, HALF_D, HALF_W, INTERACT_RADIUS, SPAWN, WALLS } from "../store-layout";
 
@@ -43,12 +44,22 @@ describe("phone models", () => {
     }
   });
 
-  it.each(manifest.phones.map((m) => [m.id, m] as const))(
+  const branded = manifest.phones.filter((m) => m.id !== "generic-phone");
+
+  it.each(branded.map((m) => [m.id, m] as const))(
     "%s keeps the material contract (Body recolour, Screen wallpaper, brand Logo)",
     (_id, m) => {
       expect(m.materials).toEqual(expect.arrayContaining(["Body", "Screen", "Logo"]));
     },
   );
+
+  it("ships an unbranded generic phone for sellers' own phones", () => {
+    const generic = manifest.phones.find((m) => m.id === "generic-phone");
+    expect(generic?.file).toBe(GENERIC_PHONE_URL);
+    expect(generic?.materials).toEqual(expect.arrayContaining(["Body", "Screen"]));
+    expect(generic?.materials).not.toContain("Logo");
+    expect(existsSync(publicFile(GENERIC_PHONE_URL))).toBe(true);
+  });
 
   it("sells only Apple and Samsung phones, with the brand in the name", () => {
     for (const p of products) {

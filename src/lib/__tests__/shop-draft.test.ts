@@ -1,7 +1,14 @@
 import { VIRTU_SHOP, getDemoShop } from "@/data/demo-shops";
 import { products } from "@/data/products";
 import { DEFAULT_THEME } from "@/data/themes";
-import { draftFromShop, draftToShop, parsePrice, previewShop, withName } from "../shop-draft";
+import {
+  draftFromShop,
+  draftToShop,
+  newCustomPhone,
+  parsePrice,
+  previewShop,
+  withName,
+} from "../shop-draft";
 
 describe("draftFromShop", () => {
   it("starts a new shop empty, with every phone listed at catalogue price and unticked", () => {
@@ -17,7 +24,12 @@ describe("draftFromShop", () => {
     const d = draftFromShop(shop);
     expect(d.slugLocked).toBe(true);
     expect(d.stock.slice(0, 3)).toEqual(
-      shop.stock.map((s) => ({ productId: s.productId, on: true, price: String(s.price) })),
+      shop.stock.map((s) => ({
+        productId: s.productId,
+        on: true,
+        price: String(s.price),
+        photos: [],
+      })),
     );
     expect(d.stock).toHaveLength(products.length);
   });
@@ -93,5 +105,86 @@ describe("previewShop", () => {
     expect(previewShop({ ...d, stock }).stock.map((s) => s.productId)).toEqual([
       d.stock[0]?.productId,
     ]);
+  });
+});
+
+describe("seller's own phones", () => {
+  const PHOTO = "https://res.cloudinary.com/virtu/image/upload/v1/virtu/shops/u1/p.webp";
+  const withPhone = () => {
+    const base = withName({ ...draftFromShop(null), location: "Kisekka" }, "Pioneer Mall Shop");
+    const phone = newCustomPhone([]);
+    if (!phone) throw new Error("no phone");
+    return {
+      ...base,
+      customPhones: [
+        {
+          ...phone,
+          brand: "Tecno",
+          name: "Spark 30",
+          price: "550,000",
+          storage: [
+            { label: "128 GB", priceDelta: "0" },
+            { label: "256 GB", priceDelta: "80,000" },
+          ],
+          photos: [PHOTO],
+        },
+      ],
+    };
+  };
+
+  it("hands out the first free id and stops at the limit", () => {
+    expect(newCustomPhone([])?.id).toBe("c1");
+    const one = newCustomPhone([]);
+    if (!one) throw new Error("no phone");
+    expect(newCustomPhone([one])?.id).toBe("c2");
+    const four = ["c1", "c2", "c3", "c4"].map((id) => ({ ...one, id }));
+    expect(newCustomPhone(four)).toBeNull();
+  });
+
+  it("opens a shop that sells only the seller's own phone", () => {
+    const result = draftToShop(withPhone(), "u1");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.shop.stock).toEqual([]);
+    expect(result.shop.customPhones?.[0]).toMatchObject({
+      id: "c1",
+      brand: "Tecno",
+      name: "Spark 30",
+      price: 550_000,
+      storage: [
+        { label: "128 GB", priceDelta: 0 },
+        { label: "256 GB", priceDelta: 80_000 },
+      ],
+      photos: [PHOTO],
+    });
+  });
+
+  it("names the phone a problem is on", () => {
+    const d = withPhone();
+    const bad = { ...d, customPhones: d.customPhones.map((p) => ({ ...p, price: "5" })) };
+    const result = draftToShop(bad, "u1");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.customPhones).toMatch(/^Spark 30: At least UGX 50,000/);
+  });
+
+  it("round-trips through draftFromShop", () => {
+    const result = draftToShop(withPhone(), "u1");
+    if (!result.ok) throw new Error("invalid");
+    const again = draftToShop(draftFromShop(result.shop), "u1");
+    expect(again).toEqual(result);
+  });
+
+  it("previews only complete phones, and no catalogue filler when one is complete", () => {
+    const preview = previewShop(withPhone());
+    expect(preview.stock).toEqual([]);
+    expect(preview.customPhones).toHaveLength(1);
+    const half = withPhone();
+    const incomplete = {
+      ...half,
+      customPhones: half.customPhones.map((p) => ({ ...p, name: "" })),
+    };
+    expect(previewShop(incomplete).customPhones).toBeUndefined();
+    expect(previewShop(incomplete).stock).toHaveLength(products.length);
   });
 });

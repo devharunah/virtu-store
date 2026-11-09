@@ -1,5 +1,6 @@
 import { getProduct } from "@/data/products";
 import { unitPrice } from "@/lib/pricing";
+import { GENERIC_PHONE_URL, isCustomId } from "@/lib/shop-products";
 import type { ColourOption, Product, VariantOption } from "@/types/product";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { create } from "zustand";
@@ -20,6 +21,18 @@ export interface CartShop {
   slug: string;
   name: string;
   basePrice: number;
+  /** For a phone the seller added themselves (not in the catalogue): what the bag needs to show it. */
+  phone?: CartPhone;
+}
+
+/** A snapshot of a seller-added phone, taken when it goes in the bag. */
+export interface CartPhone {
+  name: string;
+  brand: string;
+  colours: ColourOption[];
+  variants: VariantOption[];
+  /** First photo, if the seller uploaded any. */
+  photo?: string;
 }
 
 /** What the cart stores. */
@@ -49,10 +62,46 @@ const SHOP_SLUG = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 const MIN_SHOP_PRICE = 50_000;
 const MAX_SHOP_PRICE = 20_000_000;
 
+const MAX_STEP = 5_000_000;
+const text = (v: unknown, max: number): v is string =>
+  typeof v === "string" && v.length > 0 && v.length <= max;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+
+const isCartPhone = (v: unknown): v is CartPhone => {
+  if (!isRecord(v)) return false;
+  const { name, brand, colours, variants, photo } = v;
+  return (
+    text(name, 40) &&
+    text(brand, 20) &&
+    (photo === undefined ||
+      (text(photo, 400) && photo.startsWith("https://res.cloudinary.com/"))) &&
+    Array.isArray(colours) &&
+    colours.length >= 1 &&
+    colours.length <= 4 &&
+    colours.every(
+      (c) => isRecord(c) && text(c["id"], 4) && text(c["label"], 20) && text(c["hex"], 7),
+    ) &&
+    Array.isArray(variants) &&
+    variants.length >= 1 &&
+    variants.length <= 3 &&
+    variants.every(
+      (x) =>
+        isRecord(x) &&
+        text(x["id"], 4) &&
+        text(x["label"], 12) &&
+        typeof x["priceDelta"] === "number" &&
+        Number.isInteger(x["priceDelta"]) &&
+        x["priceDelta"] >= 0 &&
+        x["priceDelta"] <= MAX_STEP,
+    )
+  );
+};
+
 const isCartShop = (v: unknown): v is CartShop => {
   if (typeof v !== "object" || v === null) return false;
-  const { slug, name, basePrice } = v as Record<string, unknown>;
+  const { slug, name, basePrice, phone } = v as Record<string, unknown>;
   return (
+    (phone === undefined || isCartPhone(phone)) &&
     typeof slug === "string" &&
     SHOP_SLUG.test(slug) &&
     typeof name === "string" &&
@@ -118,8 +167,30 @@ const makeLine = (
 
 const clampQty = (qty: number) => Math.min(MAX_QTY, Math.max(0, Math.floor(qty)));
 
-const isKnown = (productId: string, colourId: string, variantId: string) => {
-  const product = getProduct(productId);
+/** A seller-added phone rebuilt from its bag snapshot. */
+const snapshotProduct = (productId: string, phone: CartPhone): Product => ({
+  id: productId,
+  brand: phone.brand,
+  name: phone.name,
+  tier: "Seller's phone",
+  basePrice: 0,
+  modelUrl: GENERIC_PHONE_URL,
+  colours: phone.colours,
+  variantKind: "storage",
+  variants: phone.variants,
+  displaySlot: "",
+  ...(phone.photo === undefined ? {} : { photos: [phone.photo] }),
+  custom: true,
+});
+
+/** The product a line refers to: the catalogue's, or a seller-added phone's snapshot. */
+const lineProduct = (productId: string, shop: CartShop | undefined): Product | undefined => {
+  if (!isCustomId(productId)) return getProduct(productId);
+  return shop?.phone === undefined ? undefined : snapshotProduct(productId, shop.phone);
+};
+
+const isKnown = (productId: string, colourId: string, variantId: string, shop?: CartShop) => {
+  const product = lineProduct(productId, shop);
   return (
     (product?.colours.some((c) => c.id === colourId) ?? false) &&
     (product?.variants.some((v) => v.id === variantId) ?? false)
@@ -139,7 +210,7 @@ export function relocateLine(
   if (line === undefined) return [...lines];
   const colourId = next.colourId ?? line.colourId;
   const variantId = next.variantId ?? line.variantId;
-  if (!isKnown(line.productId, colourId, variantId)) return [...lines];
+  if (!isKnown(line.productId, colourId, variantId, line.shop)) return [...lines];
   const newKey = lineKey(line.productId, colourId, variantId, line.shop?.slug);
   if (newKey === key) return [...lines];
 
@@ -155,7 +226,7 @@ export function relocateLine(
 export function priceLines(lines: readonly CartLine[]): PricedCartLine[] {
   const priced: PricedCartLine[] = [];
   for (const line of lines) {
-    const product = getProduct(line.productId);
+    const product = lineProduct(line.productId, line.shop);
     if (product === undefined) continue;
     const colour = product.colours.find((c) => c.id === line.colourId);
     const variant = product.variants.find((v) => v.id === line.variantId);
@@ -216,8 +287,8 @@ export const useCart = create<CartState>()(
       addItem: ({ productId, colourId, variantId, qty = 1, shop }) => {
         ensureCartHydrated();
         const add = clampQty(qty);
-        if (add <= 0 || !isKnown(productId, colourId, variantId)) return;
         if (shop !== undefined && !isCartShop(shop)) return;
+        if (add <= 0 || !isKnown(productId, colourId, variantId, shop)) return;
         const line = makeLine(productId, colourId, variantId, add, shop);
         const lines = get().lines;
         const existing = lines.find((l) => l.key === line.key);

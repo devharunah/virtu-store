@@ -2,6 +2,7 @@ import { SellerShopsList } from "@/components/shop/SellerShopsList";
 import { ShopCard } from "@/components/shop/ShopCard";
 import { TrademarkNotice } from "@/components/ui/TrademarkNotice";
 import { DEMO_SHOPS } from "@/data/demo-shops";
+import { listingFromShop } from "@/lib/shop-storage";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -41,7 +42,7 @@ export default function StoresPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {DEMO_SHOPS.map((shop) => (
               <li key={shop.slug} className="contents">
-                <ShopCard shop={shop} />
+                <ShopCard shop={listingFromShop(shop)} />
               </li>
             ))}
           </ul>

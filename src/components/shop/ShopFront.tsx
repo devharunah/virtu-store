@@ -1,7 +1,7 @@
 "use client";
 
 import { cldUrl } from "@/lib/image-url";
-import type { ShopConfig } from "@/lib/shop-schema";
+import type { ShopListing } from "@/lib/shop-storage";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -10,7 +10,7 @@ import { useState } from "react";
  * when there is no banner or it fails to load. Cloudinary already resizes and compresses the
  * banner, so Next's optimiser is skipped.
  */
-export function ShopFront({ shop }: { shop: ShopConfig }) {
+export function ShopFront({ shop }: { shop: ShopListing }) {
   const [broken, setBroken] = useState(false);
 
   if (shop.bannerUrl !== undefined && !broken) {
